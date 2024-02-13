@@ -21,15 +21,17 @@
 #define BRIGHTNESS 200
 
 const int UpperSewerStart = 70;
-const int LowerSewersStart = 114;
+const int LowerSewersStart = 144;
 const int UpperSewerEnd = 143;
 const int LowerSewersEnd = Num_Pixels - 12;
 const int LengthOfUpperSewer = 30;
+const int LowerSewersLength = 46;
 
 
 const int GutterLength = 3;
 
 int StormLevel = 0;
+int ProjectedStormLevel = 0;
 bool RainPush = false;
 bool GutterBegin = false;
 
@@ -40,13 +42,12 @@ struct PixelControl {
   int Pixel;
   const int End;
   const int Begin;
-  int Delay;
 };
 
-PixelControl PipeOne = {false, false,0,0,9,0,0};
-PixelControl PipeTwo = {false, false,10,10,27,10,0};
-PixelControl PipeThree = {false, false,28,28,40,28,0};
-PixelControl PipeFour = {false, false,41,41,69,41,0};
+PixelControl PipeOne = {false, false,0,0,9,0};
+PixelControl PipeTwo = {false, false,10,10,27,10};
+PixelControl PipeThree = {false, false,28,28,40,28};
+PixelControl PipeFour = {false, false,41,41,69,41};
 
 struct Time {
   unsigned long LastTriggered;
@@ -76,9 +77,11 @@ Time SewersFrame = {0,10};
 const int Length = 20;
 
 int WaveHue[Length];
+int SewerWaveHue[Length];
 int GutterHue[Length];
 int ColorHue[Length];
 int LastPixel;
+int SewersLastPixel;
 int LastGutterPixel;
 
 
@@ -97,6 +100,7 @@ void WaveUpdate(){
 
   for(int x=0; x < Length; x++){
     WaveHue[x]= (150/2)-((150/2) * sin(x * (3.14/Length)));
+    SewerWaveHue[x]= (150/2)-((150/2) * sin(x * (3.14/Length)));
   }
 
   for(int x=0; x < Length; x++){
@@ -301,24 +305,23 @@ void Rain(){
     digitalWrite(Rain_Output2, HIGH);
     digitalWrite(Rain_Output3, LOW);
     RainFrame.Duration = 5;
-    SewersFrame.Duration = 4;
+    SewersFrame.Duration = 6;
 
   }
   else if (StormLevel== 3){
     digitalWrite(Rain_Output1, HIGH);
     digitalWrite(Rain_Output2, HIGH);
     digitalWrite(Rain_Output3, HIGH);
-    RainFrame.Duration = 3;
-    SewersFrame.Duration = 1;
+    RainFrame.Duration = 5;
+    SewersFrame.Duration = 5;
 
   }
   else {
     digitalWrite(Rain_Output1, LOW);
     digitalWrite(Rain_Output2, LOW);
     digitalWrite(Rain_Output3, LOW);
-    RainFrame.Duration = 6;
+    RainFrame.Duration = 10;
     SewersFrame.Duration = 10;
-
   }
 
   if(StormLevel > 0){
@@ -364,8 +367,15 @@ void RainGutters(){
 
 void UpperSewers(){
   for(int x = 0; x < LengthOfUpperSewer; x++){
-    strip.setPixelColor(x+UpperSewerStart,0,(StormLevel+1)*(WaveHue[x-(Length*(x/Length))]/3)+15,20+(StormLevel*40));
-    strip.setPixelColor(UpperSewerEnd-x,0,(StormLevel+1)*(WaveHue[x-(Length*(x/Length))]/3)+15,20+(StormLevel*40));
+    strip.setPixelColor(x+UpperSewerStart,0,(StormLevel+1)*(SewerWaveHue[x-(Length*(x/Length))]/3)+15,20+(StormLevel*40));
+    strip.setPixelColor(UpperSewerEnd-x,0,(StormLevel+1)*(SewerWaveHue[x-(Length*(x/Length))]/3)+15,20+(StormLevel*40));
+  }
+}
+
+void LowerSewers(){
+  for(int x = 0; x < LowerSewersLength; x++){
+    strip.setPixelColor((LowerSewersStart+LowerSewersLength)-x,0,(StormLevel+1)*(SewerWaveHue[x-(Length*(x/Length))]/3)+15,20+(StormLevel*40));
+    strip.setPixelColor((LowerSewersEnd-LowerSewersLength)+x,0,(StormLevel+1)*(SewerWaveHue[x-(Length*(x/Length))]/3)+15,20+(StormLevel*40));
   }
 }
 
@@ -373,27 +383,40 @@ void loop() {
   CurrentTime = millis();
   Rain();
 
+  if(CurrentTime  >= RainFrame.Duration + RainFrame.LastTriggered){
+    RainGutters();
+    RainFrame.LastTriggered = CurrentTime;
+  }
+
+  CurrentTime = millis();
+
+  if(CurrentTime  >= SewersFrame.Duration + SewersFrame.LastTriggered){
+    UpperSewers();
+    LowerSewers();
+
+    SewersLastPixel = SewerWaveHue[Length-1];
+    for(int x = Length; x >= 0; x--){
+      if(x!=0){SewerWaveHue[x]=SewerWaveHue[x-1];} 
+      else {SewerWaveHue[x]=SewersLastPixel;}
+    }
+
+    SewersFrame.LastTriggered = CurrentTime;
+  }
+
+  CurrentTime = millis();
+
   if(CurrentTime  >= PipesFrame.Duration + PipesFrame.LastTriggered){
     if(digitalRead(Input_1) == HIGH || PipeOne.start == true){Toilet();}
     if(digitalRead(Input_2) == HIGH || PipeTwo.start == true){BathTub();}
     if(digitalRead(Input_3) == HIGH || PipeThree.start == true){Shower();}
     if(digitalRead(Input_4) == HIGH || PipeFour.start == true){Sink();}
+
     LastPixel = WaveHue[Length-1];
     for(int x = Length; x >= 0; x--){
       if(x!=0){WaveHue[x]=WaveHue[x-1];} 
       else {WaveHue[x]=LastPixel;}
     }
     PipesFrame.LastTriggered = CurrentTime;
-  }
-
-  if(CurrentTime  >= RainFrame.Duration + RainFrame.LastTriggered){
-    RainGutters();
-    RainFrame.LastTriggered = CurrentTime;
-  }
-
-  if(CurrentTime  >= SewersFrame.Duration + SewersFrame.LastTriggered){
-    UpperSewers();
-    SewersFrame.LastTriggered = CurrentTime;
   }
 
   strip.show();
