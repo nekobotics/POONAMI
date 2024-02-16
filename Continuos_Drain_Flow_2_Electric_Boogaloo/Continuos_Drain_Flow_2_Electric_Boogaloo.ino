@@ -8,7 +8,7 @@
 #define Input_1 10
 #define Input_2 11
 #define Input_3 12
-#define Input_4 0
+#define Input_4 7
 
 #define Rain_Input 8
 
@@ -282,7 +282,7 @@ void Shower(){
 
 void Sink(){
   if(CurrentTime >= PipesFrame.LastTriggered + PipesFrame.Duration){
-    if(analogRead(Input_4) >= 530 && PipeFour.run == false){
+    if(digitalRead(Input_4) == HIGH && PipeFour.run == false){
       digitalWrite(Output_4,HIGH);
 
       if(PipeFour.start == false){
@@ -376,6 +376,7 @@ void Rain(){
       if(SewersFrame.Duration > ProjectedSpeed.Duration){SewersFrame.Duration--;}
       else if(SewersFrame.Duration < ProjectedSpeed.Duration){SewersFrame.Duration++;}
     }
+    PooOneSpeed.Duration = SewersFrame.Duration;
   }
 
 
@@ -505,8 +506,6 @@ void Poo(){
 
     PooOneTravel();
     PooOneSpeed.LastTriggered=CurrentTime;
-    PooOneSpeed.Duration = SewersFrame.Duration;
-
   }
 
 }
