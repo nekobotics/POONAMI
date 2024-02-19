@@ -22,6 +22,8 @@
 
 int Runoff = 0;
 
+bool allActive = false;
+
 bool GutterBegin = false;
 const int GutterLength = 3;
 
@@ -32,18 +34,20 @@ bool RainPush = false;
 const int StreakLength = 5;
 
 struct PixelControl {
+  bool PooPath;
   bool run;
   bool start;
   int Stream;
   int Pixel;
+  int Poo;
   const int End;
   const int Begin;
 };
 
-PixelControl PipeOne = {false, false,0,0,9,0};
-PixelControl PipeTwo = {false, false,10,10,27,10};
-PixelControl PipeThree = {false, false,28,28,40,28};
-PixelControl PipeFour = {false, false,41,41,69,41};
+PixelControl PipeOne = {false, false, false,0,0,0,9,0};
+PixelControl PipeTwo = {false, false, false,10,10,10,27,10};
+PixelControl PipeThree = {false, false, false,28,28,28,40,28};
+PixelControl PipeFour = {false, false, false,41,41,41,69,41};
 
 struct Time {
   unsigned long LastTriggered;
@@ -55,6 +59,10 @@ Time BathWait = {0,50};
 Time ToiletWait = BathWait;
 Time ShowerWait = BathWait;
 Time SinkWait = BathWait;
+Time PipeOnePooWait = {0,60};
+Time PipeTwoPooWait = PipeOnePooWait;
+Time PipeThreePooWait = PipeOnePooWait;
+Time PipeFourPooWait = PipeOnePooWait;
 Time RainFrame = {0,10};
 Time RainWait = {0,500};
 Time SewersFrame = {0,10};
@@ -77,8 +85,8 @@ Time PooOneSpeed = {0,11};
 // GutterPixel GutterFour = {3,0,0};
 
   const int PipeOneSewer = 11;
-  const int PipeTwoSewer = 17;
-  const int PipeThreeSewer = 24;
+  const int PipeTwoSewer = 16;
+  const int PipeThreeSewer = 23;
   const int PipeFourSewer = 6;
   // const int PipeSewerDropSize = 2;
 
@@ -105,13 +113,21 @@ int LastGutterPixel;
 
 struct PooDrop{
   bool active;
+  int Pipe;
   int Poo[StreakLength];
   int Start[5];
   int End[5];
   int CurrentPath;
 };
 
-PooDrop PooOne = {false,{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},0};
+PooDrop PooOne = {false,0,{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},0};
+PooDrop PooTwo = {false,0,{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},0};
+PooDrop PooThree = {false,0,{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},0};
+PooDrop PooFour = {false,0,{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},0};
+PooDrop PooFive = {false,0,{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},0};
+PooDrop PooSix = {false,0,{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},0};
+PooDrop PooSeven = {false,0,{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},0};
+PooDrop PooEight = {false,0,{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},0};
 
 int GutterPixel = 0;
 int GutterLag = 0;
@@ -170,6 +186,7 @@ void Toilet(){
 
       if(PipeOne.start == false){
         ToiletWait.LastTriggered = CurrentTime;
+        PipeOnePooWait.LastTriggered = CurrentTime;
         PipeOne.start = true;
       }
       else if(CurrentTime >= ToiletWait.LastTriggered + ToiletWait.Duration){
@@ -192,12 +209,23 @@ void Toilet(){
       }
       if(PipeOne.Pixel <= PipeOne.End + Length){PipeOne.Pixel++;}
       else if(PipeOne.Pixel > PipeOne.End + Length){
+        PipeOne.PooPath = false;
         PipeOne.run = false;
         PipeOne.start = false;
         PipeOne.Stream = PipeOne.Begin;
         PipeOne.Pixel = PipeOne.Begin;
+        PipeOne.Poo = PipeOne.Begin;
         digitalWrite(Output_1,LOW);
       }
+    }
+
+    if(PipeOne.start == true && allActive != true && CurrentTime >= PipeOnePooWait.LastTriggered + PipeOnePooWait.Duration){
+      for(int x = 0; x < StreakLength; x++){
+        if(PipeOne.Poo - x < PipeOne.Begin){break;}
+        else if(PipeOne.Poo - x <= PipeOne.End){strip.setPixelColor(PipeOne.Poo - x, StreakHue[x], 0,0);}
+      }
+
+      if(PipeOne.Poo < PipeOne.End + StreakLength){PipeOne.Poo++;}
     }
   }
 }
@@ -209,6 +237,7 @@ void BathTub(){
 
       if(PipeTwo.start == false){
         BathWait.LastTriggered = CurrentTime;
+        PipeTwoPooWait.LastTriggered = CurrentTime;
         PipeTwo.start = true;
       }
       else if(CurrentTime >= BathWait.LastTriggered + BathWait.Duration){
@@ -231,12 +260,23 @@ void BathTub(){
       }
       if(PipeTwo.Pixel <= PipeTwo.End + Length){PipeTwo.Pixel++;}
       else if(PipeTwo.Pixel > PipeTwo.End + Length){
+        PipeTwo.PooPath = false;
         PipeTwo.run = false;
         PipeTwo.start = false;
+        PipeTwo.Poo = PipeTwo.Begin;
         PipeTwo.Stream = PipeTwo.Begin;
         PipeTwo.Pixel = PipeTwo.Begin;
         digitalWrite(Output_2,LOW);
       }
+    }
+
+    if(PipeTwo.start == true && allActive != true && CurrentTime >= PipeTwoPooWait.LastTriggered + PipeTwoPooWait.Duration){
+      for(int x = 0; x < StreakLength; x++){
+        if(PipeTwo.Poo - x < PipeTwo.Begin){break;}
+        else if(PipeTwo.Poo - x <= PipeTwo.End){strip.setPixelColor(PipeTwo.Poo - x, StreakHue[x], 0,0);}
+      }
+
+      if(PipeTwo.Poo < PipeTwo.End + StreakLength){PipeTwo.Poo++;}
     }
   } 
 }
@@ -248,6 +288,7 @@ void Shower(){
 
       if(PipeThree.start == false){
         ShowerWait.LastTriggered = CurrentTime;
+        PipeThreePooWait.LastTriggered = CurrentTime;
         PipeThree.start = true;
       }
       else if(CurrentTime >= ShowerWait.LastTriggered + ShowerWait.Duration){
@@ -270,12 +311,23 @@ void Shower(){
       }
       if(PipeThree.Pixel <= PipeThree.End + Length){PipeThree.Pixel++;}
       else if(PipeThree.Pixel > PipeThree.End + Length){
+        PipeThree.PooPath = false;
         PipeThree.run = false;
         PipeThree.start = false;
+        PipeThree.Poo = PipeThree.Begin;
         PipeThree.Stream = PipeThree.Begin;
         PipeThree.Pixel = PipeThree.Begin;
         digitalWrite(Output_3,LOW);
       }
+    }
+
+    if(PipeThree.start == true && allActive != true && CurrentTime >= PipeThreePooWait.LastTriggered + PipeThreePooWait.Duration){
+      for(int x = 0; x < StreakLength; x++){
+        if(PipeThree.Poo - x < PipeThree.Begin){break;}
+        else if(PipeThree.Poo - x <= PipeThree.End){strip.setPixelColor(PipeThree.Poo - x, StreakHue[x], 0,0);}
+      }
+
+      if(PipeThree.Poo < PipeThree.End + StreakLength){PipeThree.Poo++;}
     }
   }
 }
@@ -287,6 +339,7 @@ void Sink(){
 
       if(PipeFour.start == false){
         SinkWait.LastTriggered = CurrentTime;
+        PipeFourPooWait.LastTriggered = CurrentTime;
         PipeFour.start = true;
       }
       else if(CurrentTime >= SinkWait.LastTriggered + SinkWait.Duration){
@@ -309,12 +362,23 @@ void Sink(){
       }
       if(PipeFour.Pixel <= PipeFour.End + Length){PipeFour.Pixel++;}
       else if(PipeFour.Pixel > PipeFour.End + Length){
+        PipeFour.PooPath = false;
         PipeFour.run = false;
         PipeFour.start = false;
+        PipeFour.Poo = PipeFour.Begin;
         PipeFour.Stream = PipeFour.Begin;
         PipeFour.Pixel = PipeFour.Begin;
         digitalWrite(Output_4,LOW);
       }
+    }
+
+    if(PipeFour.start == true && allActive != true && CurrentTime >= PipeFourPooWait.LastTriggered + PipeFourPooWait.Duration){
+      for(int x = 0; x < StreakLength; x++){
+        if(PipeFour.Poo - x < PipeFour.Begin){break;}
+        else if(PipeFour.Poo - x <= PipeFour.End){strip.setPixelColor(PipeFour.Poo - x, StreakHue[x], 0,0);}
+      }
+
+      if(PipeFour.Poo < PipeFour.End + StreakLength){PipeFour.Poo++;}
     }
   }
 }
@@ -436,8 +500,7 @@ void UpperSewers(){
     for(int x = 0; x < LengthOfUpperSewer; x++){
       strip.setPixelColor(x+UpperSewerStart,0,(StormLevel+1)*(SewerWaveHue[x-(Length*(x/Length))]/3)+15,20+(StormLevel*40));
       strip.setPixelColor(UpperSewerEnd-x,0,(StormLevel+1)*(SewerWaveHue[x-(Length*(x/Length))]/3)+15,20+(StormLevel*40));
-  }
-
+    }
   }
 }
 
@@ -484,47 +547,244 @@ void LowerSewers(){
 
 void Poo(){
   if(CurrentTime >= PooOneSpeed.LastTriggered + PooOneSpeed.Duration){
-    if(PipeOne.Stream >= PipeOne.End){
+    if(PipeOne.Poo >= PipeOne.End && PipeOne.PooPath == false){
       if(PooOne.active != true){
         PooOne.Start[0] = UpperSewerEnd - PipeOneSewer;
         PooOne.Start[1] = (LowerSewersStart + LowerSewersLength);
         PooOne.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
         PooOne.End[0] = UpperSewerEnd - LengthOfUpperSewer;
-        PooOne.End[1] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooOne.End[1] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator)+1);
         PooOne.End[2] = LowerSewersStart;
-        
-          if(StormLevel ==3){
-            PooOne.Start[2] = (LowerSewersEnd -(LowerSewersLength - DrainageRegulator));
-            PooOne.End[2] = LowerSewersEnd;
-          }
-
 
         PooOne.Poo[0]=PooOne.Start[0];
         PooOne.active = true;
+        PipeOne.PooPath = true;
+      }
+      else if(PooTwo.active != true){
+        PooTwo.Start[0] = UpperSewerEnd - PipeOneSewer;
+        PooTwo.Start[1] = (LowerSewersStart + LowerSewersLength);
+        PooTwo.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooTwo.End[0] = UpperSewerEnd - LengthOfUpperSewer;
+        PooTwo.End[1] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator)+1);
+        PooTwo.End[2] = LowerSewersStart;
+
+        PooTwo.Poo[0]=PooTwo.Start[0];
+        PooTwo.active = true;
+        PipeOne.PooPath = true;
+      }
+      else if(PooThree.active != true){
+        PooThree.Start[0] = UpperSewerEnd - PipeOneSewer;
+        PooThree.Start[1] = (LowerSewersStart + LowerSewersLength);
+        PooThree.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooThree.End[0] = UpperSewerEnd - LengthOfUpperSewer;
+        PooThree.End[1] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator)+1);
+        PooThree.End[2] = LowerSewersStart;
+
+        PooThree.Poo[0]=PooThree.Start[0];
+        PooThree.active = true;
+        PipeOne.PooPath = true;
+      }
+      else if(PooFour.active != true){
+        PooFour.Start[0] = UpperSewerEnd - PipeOneSewer;
+        PooFour.Start[1] = (LowerSewersStart + LowerSewersLength);
+        PooFour.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooFour.End[0] = UpperSewerEnd - LengthOfUpperSewer;
+        PooFour.End[1] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator)+1);
+        PooFour.End[2] = LowerSewersStart;
+
+        PooFour.Poo[0]=PooFour.Start[0];
+        PooFour.active = true;
+        PipeOne.PooPath = true;
+      }
+    }
+    
+    if(PipeTwo.Poo >= PipeTwo.End && PipeTwo.PooPath == false){
+      if(PooOne.active != true){
+        PooOne.Start[0] = UpperSewerEnd - PipeTwoSewer;
+        PooOne.Start[1] = (LowerSewersStart + LowerSewersLength);
+        PooOne.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooOne.End[0] = UpperSewerEnd - LengthOfUpperSewer;
+        PooOne.End[1] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator)+1);
+        PooOne.End[2] = LowerSewersStart;
+
+        PooOne.Poo[0]=PooOne.Start[0];
+        PooOne.active = true;
+        PipeTwo.PooPath = true;
+      }
+      else if(PooTwo.active != true){
+        PooTwo.Start[0] = UpperSewerEnd - PipeTwoSewer;
+        PooTwo.Start[1] = (LowerSewersStart + LowerSewersLength);
+        PooTwo.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooTwo.End[0] = UpperSewerEnd - LengthOfUpperSewer;
+        PooTwo.End[1] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator)+1);
+        PooTwo.End[2] = LowerSewersStart;
+
+        PooTwo.Poo[0]=PooTwo.Start[0];
+        PooTwo.active = true;
+        PipeTwo.PooPath = true;
+      }
+      else if(PooThree.active != true){
+        PooThree.Start[0] = UpperSewerEnd - PipeTwoSewer;
+        PooThree.Start[1] = (LowerSewersStart + LowerSewersLength);
+        PooThree.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooThree.End[0] = UpperSewerEnd - LengthOfUpperSewer;
+        PooThree.End[1] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator)+1);
+        PooThree.End[2] = LowerSewersStart;
+
+        PooThree.Poo[0]=PooThree.Start[0];
+        PooThree.active = true;
+        PipeTwo.PooPath = true;
+      }
+      else if(PooFour.active != true){
+        PooFour.Start[0] = UpperSewerEnd - PipeTwoSewer;
+        PooFour.Start[1] = (LowerSewersStart + LowerSewersLength);
+        PooFour.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooFour.End[0] = UpperSewerEnd - LengthOfUpperSewer;
+        PooFour.End[1] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator)+1);
+        PooFour.End[2] = LowerSewersStart;
+
+        PooFour.Poo[0]=PooFour.Start[0];
+        PooFour.active = true;
+        PipeTwo.PooPath = true;
       }
     }
 
-    PooOneTravel();
+    if(PipeThree.Poo >= PipeThree.End && PipeThree.PooPath == false){
+      if(PooOne.active != true){
+        PooOne.Start[0] = UpperSewerStart + PipeThreeSewer;
+        PooOne.Start[1] = (LowerSewersEnd - LowerSewersLength);
+        PooOne.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooOne.End[0] = UpperSewerStart + LengthOfUpperSewer;
+        PooOne.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator)-1);
+        PooOne.End[2] = LowerSewersStart;
+
+        PooOne.Poo[0]=PooOne.Start[0];
+        PooOne.active = true;
+        PipeThree.PooPath = true;
+      }
+      else if(PooTwo.active != true){
+        PooTwo.Start[0] = UpperSewerStart + PipeThreeSewer;
+        PooTwo.Start[1] = (LowerSewersEnd - LowerSewersLength);
+        PooTwo.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooTwo.End[0] = UpperSewerStart + LengthOfUpperSewer;
+        PooTwo.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator)-1);
+        PooTwo.End[2] = LowerSewersStart;
+
+        PooTwo.Poo[0]=PooTwo.Start[0];
+        PooTwo.active = true;
+        PipeThree.PooPath = true;
+      }
+      else if(PooThree.active != true){
+        PooThree.Start[0] = UpperSewerStart + PipeThreeSewer;
+        PooThree.Start[1] = (LowerSewersEnd - LowerSewersLength);
+        PooThree.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooThree.End[0] = UpperSewerStart + LengthOfUpperSewer;
+        PooThree.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator)-1);
+        PooThree.End[2] = LowerSewersStart;
+
+        PooThree.Poo[0]=PooThree.Start[0];
+        PooThree.active = true;
+        PipeThree.PooPath = true;
+      }
+      else if(PooFour.active != true){
+        PooFour.Start[0] = UpperSewerStart + PipeThreeSewer;
+        PooFour.Start[1] = (LowerSewersEnd - LowerSewersLength);
+        PooFour.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooFour.End[0] = UpperSewerStart + LengthOfUpperSewer;
+        PooFour.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator)-1);
+        PooFour.End[2] = LowerSewersStart;
+
+        PooFour.Poo[0]=PooFour.Start[0];
+        PooFour.active = true;
+        PipeThree.PooPath = true;
+      }
+    }
+
+    if(PipeFour.Poo >= PipeFour.End && PipeFour.PooPath == false){
+      if(PooOne.active != true){
+        PooOne.Start[0] = UpperSewerStart + PipeFourSewer;
+        PooOne.Start[1] = (LowerSewersEnd - LowerSewersLength);
+        PooOne.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooOne.End[0] = UpperSewerStart + LengthOfUpperSewer;
+        PooOne.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator)-1);
+        PooOne.End[2] = LowerSewersStart;
+
+        PooOne.Poo[0]=PooOne.Start[0];
+        PooOne.active = true;
+        PipeFour.PooPath = true;
+      }
+      else if(PooTwo.active != true){
+        PooTwo.Start[0] = UpperSewerStart + PipeFourSewer;
+        PooTwo.Start[1] = (LowerSewersEnd - LowerSewersLength);
+        PooTwo.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooTwo.End[0] = UpperSewerStart + LengthOfUpperSewer;
+        PooTwo.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator)-1);
+        PooTwo.End[2] = LowerSewersStart;
+
+        PooTwo.Poo[0]=PooTwo.Start[0];
+        PooTwo.active = true;
+        PipeFour.PooPath = true;
+      }
+      else if(PooThree.active != true){
+        PooThree.Start[0] = UpperSewerStart + PipeFourSewer;
+        PooThree.Start[1] = (LowerSewersEnd - LowerSewersLength);
+        PooThree.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooThree.End[0] = UpperSewerStart + LengthOfUpperSewer;
+        PooThree.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator)-1);
+        PooThree.End[2] = LowerSewersStart;
+
+        PooThree.Poo[0]=PooThree.Start[0];
+        PooThree.active = true;
+        PipeFour.PooPath = true;
+      }
+      else if(PooFour.active != true){
+        PooFour.Start[0] = UpperSewerStart + PipeFourSewer;
+        PooFour.Start[1] = (LowerSewersEnd - LowerSewersLength);
+        PooFour.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooFour.End[0] = UpperSewerStart + LengthOfUpperSewer;
+        PooFour.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator)-1);
+        PooFour.End[2] = LowerSewersStart;
+
+        PooFour.Poo[0]=PooFour.Start[0];
+        PooFour.active = true;
+        PipeFour.PooPath = true;
+      }
+    }
+
+
+    if(PooOne.active == true){PooOneTravel();}
+    if(PooTwo.active == true){PooTwoTravel();}
+    if(PooThree.active == true){PooThreeTravel();}
+    if(PooFour.active == true){PooFourTravel();}
+
+    if(PooOne.active == true && PooTwo.active == true && PooThree.active == true && PooFour.active == true){allActive = true;}
+    else {allActive = false;}
+
     PooOneSpeed.LastTriggered=CurrentTime;
   }
 
 }
 
 void PooOneTravel() {
-  if(CurrentTime >= PooOneSpeed.LastTriggered + PooOneSpeed.Duration){
     for(int x = 0; x < StreakLength; x++){
       if(PooOne.Poo[x] != 0){strip.setPixelColor(PooOne.Poo[x],StreakHue[x],0,0);}
     }
 
     for(int x = StreakLength; x > 0; x--){PooOne.Poo[x] = PooOne.Poo[x-1];}
 
+    if(StormLevel ==3 && (PooOne.Poo[0] == PooOne.End[1] +1 || PooOne.Poo[0] == PooOne.End[1] -1)){
+      PooOne.Start[2] = (LowerSewersEnd -(LowerSewersLength - DrainageRegulator));
+      PooOne.End[2] = LowerSewersEnd;
+    }
+    
     if(PooOne.Poo[0] < PooOne.End[PooOne.CurrentPath]){PooOne.Poo[0]++;}
     else if(PooOne.Poo[0] > PooOne.End[PooOne.CurrentPath]){PooOne.Poo[0]--;}
     if(PooOne.Poo[0] == PooOne.End[PooOne.CurrentPath]){
       PooOne.CurrentPath++;
       PooOne.Poo[0] =PooOne.Start[PooOne.CurrentPath];
     }
-    
+
+
     if(PooOne.End[PooOne.CurrentPath] == 0 || PooOne.CurrentPath == 4){
       for(int x = 0; x < StreakLength; x++){PooOne.End[x] = 0;}
       for(int x = 0; x < StreakLength; x++){PooOne.Start[x] = 0;}
@@ -532,7 +792,92 @@ void PooOneTravel() {
       PooOne.CurrentPath = 0;
       PooOne.active = false;
     }
-  }
+}
+
+void PooTwoTravel() {
+    for(int x = 0; x < StreakLength; x++){
+      if(PooTwo.Poo[x] != 0){strip.setPixelColor(PooTwo.Poo[x],StreakHue[x],0,0);}
+    }
+
+    for(int x = StreakLength; x > 0; x--){PooTwo.Poo[x] = PooTwo.Poo[x-1];}
+
+    if(StormLevel ==3 && (PooTwo.Poo[0] == PooTwo.End[1] +1 || PooTwo.Poo[0] == PooTwo.End[1] -1)){
+      PooTwo.Start[2] = (LowerSewersEnd -(LowerSewersLength - DrainageRegulator));
+      PooTwo.End[2] = LowerSewersEnd;
+    }
+    
+    if(PooTwo.Poo[0] < PooTwo.End[PooTwo.CurrentPath]){PooTwo.Poo[0]++;}
+    else if(PooTwo.Poo[0] > PooTwo.End[PooTwo.CurrentPath]){PooTwo.Poo[0]--;}
+    if(PooTwo.Poo[0] == PooTwo.End[PooTwo.CurrentPath]){
+      PooTwo.CurrentPath++;
+      PooTwo.Poo[0] =PooTwo.Start[PooTwo.CurrentPath];
+    }
+
+
+    if(PooTwo.End[PooTwo.CurrentPath] == 0 || PooTwo.CurrentPath == 4){
+      for(int x = 0; x < StreakLength; x++){PooTwo.End[x] = 0;}
+      for(int x = 0; x < StreakLength; x++){PooTwo.Start[x] = 0;}
+      for(int x = 0; x < StreakLength; x++){PooTwo.Poo[x] = 0;}
+      PooTwo.CurrentPath = 0;
+      PooTwo.active = false;
+    }
+}
+
+void PooThreeTravel() {
+    for(int x = 0; x < StreakLength; x++){
+      if(PooThree.Poo[x] != 0){strip.setPixelColor(PooThree.Poo[x],StreakHue[x],0,0);}
+    }
+
+    for(int x = StreakLength; x > 0; x--){PooThree.Poo[x] = PooThree.Poo[x-1];}
+
+    if(StormLevel ==3 && (PooThree.Poo[0] == PooThree.End[1] +1 || PooThree.Poo[0] == PooThree.End[1] -1)){
+      PooThree.Start[2] = (LowerSewersEnd -(LowerSewersLength - DrainageRegulator));
+      PooThree.End[2] = LowerSewersEnd;
+    }
+    
+    if(PooThree.Poo[0] < PooThree.End[PooThree.CurrentPath]){PooThree.Poo[0]++;}
+    else if(PooThree.Poo[0] > PooThree.End[PooThree.CurrentPath]){PooThree.Poo[0]--;}
+    if(PooThree.Poo[0] == PooThree.End[PooThree.CurrentPath]){
+      PooThree.CurrentPath++;
+      PooThree.Poo[0] =PooThree.Start[PooThree.CurrentPath];
+    }
+
+
+    if(PooThree.End[PooThree.CurrentPath] == 0 || PooThree.CurrentPath == 4){
+      for(int x = 0; x < StreakLength; x++){PooThree.End[x] = 0;}
+      for(int x = 0; x < StreakLength; x++){PooThree.Start[x] = 0;}
+      for(int x = 0; x < StreakLength; x++){PooThree.Poo[x] = 0;}
+      PooThree.CurrentPath = 0;
+      PooThree.active = false;
+    }
+}
+
+void PooFourTravel() {
+    for(int x = 0; x < StreakLength; x++){
+      if(PooFour.Poo[x] != 0){strip.setPixelColor(PooFour.Poo[x],StreakHue[x],0,0);}
+    }
+
+    for(int x = StreakLength; x > 0; x--){PooFour.Poo[x] = PooFour.Poo[x-1];}
+
+    if(StormLevel ==3 && (PooFour.Poo[0] == PooFour.End[1] +1 || PooFour.Poo[0] == PooFour.End[1] -1)){
+      PooFour.Start[2] = (LowerSewersEnd -(LowerSewersLength - DrainageRegulator));
+      PooFour.End[2] = LowerSewersEnd;
+    }
+    
+    if(PooFour.Poo[0] < PooFour.End[PooFour.CurrentPath]){PooFour.Poo[0]++;}
+    else if(PooFour.Poo[0] > PooFour.End[PooFour.CurrentPath]){PooFour.Poo[0]--;}
+    if(PooFour.Poo[0] == PooFour.End[PooFour.CurrentPath]){
+      PooFour.CurrentPath++;
+      PooFour.Poo[0] =PooFour.Start[PooFour.CurrentPath];
+    }
+
+    if(PooFour.End[PooFour.CurrentPath] == 0 || PooFour.CurrentPath == 4){
+      for(int x = 0; x < StreakLength; x++){PooFour.End[x] = 0;}
+      for(int x = 0; x < StreakLength; x++){PooFour.Start[x] = 0;}
+      for(int x = 0; x < StreakLength; x++){PooFour.Poo[x] = 0;}
+      PooFour.CurrentPath = 0;
+      PooFour.active = false;
+    }
 }
 
 void loop() {
