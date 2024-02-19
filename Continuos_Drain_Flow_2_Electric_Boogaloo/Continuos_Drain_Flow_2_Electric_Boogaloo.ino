@@ -30,6 +30,7 @@ const int GutterLength = 3;
 int StormLevel = 0;
 int ProjectedStormLevel = 0;
 bool RainPush = false;
+bool Raining = false;
 
 const int StreakLength = 5;
 
@@ -219,7 +220,7 @@ void Toilet(){
       }
     }
 
-    if(PipeOne.start == true && allActive != true && CurrentTime >= PipeOnePooWait.LastTriggered + PipeOnePooWait.Duration){
+    if(PipeOne.start == true && allActive != true && CurrentTime >= PipeOnePooWait.LastTriggered + PipeOnePooWait.Duration && PipeOne.Pixel < PipeOne.End + StreakLength){
       for(int x = 0; x < StreakLength; x++){
         if(PipeOne.Poo - x < PipeOne.Begin){break;}
         else if(PipeOne.Poo - x <= PipeOne.End){strip.setPixelColor(PipeOne.Poo - x, StreakHue[x], 0,0);}
@@ -270,7 +271,7 @@ void BathTub(){
       }
     }
 
-    if(PipeTwo.start == true && allActive != true && CurrentTime >= PipeTwoPooWait.LastTriggered + PipeTwoPooWait.Duration){
+    if(PipeTwo.start == true && allActive != true && CurrentTime >= PipeTwoPooWait.LastTriggered + PipeTwoPooWait.Duration && PipeTwo.Pixel < PipeTwo.End + StreakLength){
       for(int x = 0; x < StreakLength; x++){
         if(PipeTwo.Poo - x < PipeTwo.Begin){break;}
         else if(PipeTwo.Poo - x <= PipeTwo.End){strip.setPixelColor(PipeTwo.Poo - x, StreakHue[x], 0,0);}
@@ -321,7 +322,7 @@ void Shower(){
       }
     }
 
-    if(PipeThree.start == true && allActive != true && CurrentTime >= PipeThreePooWait.LastTriggered + PipeThreePooWait.Duration){
+    if(PipeThree.start == true && allActive != true && CurrentTime >= PipeThreePooWait.LastTriggered + PipeThreePooWait.Duration && PipeThree.Pixel < PipeThree.End + StreakLength){
       for(int x = 0; x < StreakLength; x++){
         if(PipeThree.Poo - x < PipeThree.Begin){break;}
         else if(PipeThree.Poo - x <= PipeThree.End){strip.setPixelColor(PipeThree.Poo - x, StreakHue[x], 0,0);}
@@ -372,7 +373,7 @@ void Sink(){
       }
     }
 
-    if(PipeFour.start == true && allActive != true && CurrentTime >= PipeFourPooWait.LastTriggered + PipeFourPooWait.Duration){
+    if(PipeFour.start == true && allActive != true && CurrentTime >= PipeFourPooWait.LastTriggered + PipeFourPooWait.Duration && PipeFour.Pixel < PipeFour.End +  StreakLength){
       for(int x = 0; x < StreakLength; x++){
         if(PipeFour.Poo - x < PipeFour.Begin){break;}
         else if(PipeFour.Poo - x <= PipeFour.End){strip.setPixelColor(PipeFour.Poo - x, StreakHue[x], 0,0);}
@@ -386,7 +387,7 @@ void Sink(){
 void Rain(){
   if(digitalRead(Rain_Input)== HIGH && RainPush == false){
     RainWait.LastTriggered = CurrentTime;
-    if(ProjectedStormLevel<3){ProjectedStormLevel++;}
+    if(ProjectedStormLevel<3 && Raining == false){ProjectedStormLevel++;}
     RainPush = true;
   }
   else if(digitalRead(Rain_Input)==LOW){RainPush = false;}
@@ -460,6 +461,9 @@ void Rain(){
     RainHold.LastTriggered = CurrentTime;
     ProjectedStormLevel = 0;
   }
+
+  if(StormLevel > 0 && ProjectedStormLevel == 0){Raining = true;}
+  else{Raining = false;}
 
 }
 
