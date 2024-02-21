@@ -10,6 +10,9 @@
 #define Input_3 12
 #define Input_4 7
 
+#define ToiletSound 52
+#define ShowerSound 53
+
 #define Rain_Input 8
 
 #define Rain_Output1 22
@@ -166,6 +169,9 @@ void setup() {
   pinMode(Output_3,OUTPUT);
   pinMode(Output_4,OUTPUT);
 
+  pinMode(ShowerSound,OUTPUT);
+  pinMode(ToiletSound,OUTPUT);
+
   pinMode(Input_1,INPUT);
   pinMode(Input_2,INPUT);
   pinMode(Input_3,INPUT);
@@ -191,6 +197,7 @@ void Toilet(){
         PipeOne.start = true;
       }
       else if(CurrentTime >= ToiletWait.LastTriggered + ToiletWait.Duration){
+        digitalWrite(ToiletSound, HIGH);
         for(int x = 0; x < PipeOne.Stream-PipeOne.Begin; x++){strip.setPixelColor(PipeOne.Begin + x, 0, WaveHue[x -(Length*(x/Length))], 150);}
         if(PipeOne.Stream <= PipeOne.End){PipeOne.Stream++;}
       }
@@ -198,6 +205,7 @@ void Toilet(){
 
     else if(PipeOne.start == true && CurrentTime >= ToiletWait.LastTriggered + ToiletWait.Duration){
       PipeOne.run = true;
+      digitalWrite(ToiletSound, HIGH);
 
       if(PipeOne.Stream > PipeOne.Begin){
         for(int x = PipeOne.Pixel; x < PipeOne.Stream; x++){strip.setPixelColor(x, 0, WaveHue[x -(Length*(x/Length))], 150);}
@@ -217,6 +225,7 @@ void Toilet(){
         PipeOne.Pixel = PipeOne.Begin;
         PipeOne.Poo = PipeOne.Begin;
         digitalWrite(Output_1,LOW);
+        digitalWrite(ToiletSound, LOW);
       }
     }
 
@@ -242,6 +251,7 @@ void BathTub(){
         PipeTwo.start = true;
       }
       else if(CurrentTime >= BathWait.LastTriggered + BathWait.Duration){
+        digitalWrite(ShowerSound, HIGH);
         for(int x = 0; x < PipeTwo.Stream-PipeTwo.Begin; x++){strip.setPixelColor(PipeTwo.Begin + x, 0, WaveHue[x -(Length*(x/Length))], 150);}
         if(PipeTwo.Stream <= PipeTwo.End){PipeTwo.Stream++;}
       }
@@ -268,6 +278,7 @@ void BathTub(){
         PipeTwo.Stream = PipeTwo.Begin;
         PipeTwo.Pixel = PipeTwo.Begin;
         digitalWrite(Output_2,LOW);
+        digitalWrite(ShowerSound, LOW);
       }
     }
 
@@ -299,6 +310,7 @@ void Shower(){
     }
 
     else if(PipeThree.start == true && CurrentTime >= ShowerWait.LastTriggered + ShowerWait.Duration){
+      digitalWrite(Output_3,LOW);
       PipeThree.run = true;
 
       if(PipeThree.Stream > PipeThree.Begin){
@@ -318,7 +330,6 @@ void Shower(){
         PipeThree.Poo = PipeThree.Begin;
         PipeThree.Stream = PipeThree.Begin;
         PipeThree.Pixel = PipeThree.Begin;
-        digitalWrite(Output_3,LOW);
       }
     }
 
