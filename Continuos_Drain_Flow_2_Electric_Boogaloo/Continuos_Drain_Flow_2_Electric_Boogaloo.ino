@@ -95,12 +95,12 @@ Time PooOneSpeed = {0,11};
   // const int PipeSewerDropSize = 2;
 
   const int UpperSewerStart = 70;
-  const int UpperSewerEnd = 143;
+  const int UpperSewerEnd = 142;
   const int LengthOfUpperSewer = 30;
 
-  const int LowerSewersStart = 144;
+  const int LowerSewersStart = 143;
   const int LowerSewersEnd = Num_Pixels - 12;
-  const int LowerSewersLength = 45;
+  const int LowerSewersLength = 46;
   const int DrainageRegulator = LowerSewersLength - 14;
 
 const int Length = 20;
@@ -259,7 +259,8 @@ void BathTub(){
 
     else if(PipeTwo.start == true && CurrentTime >= BathWait.LastTriggered + BathWait.Duration){
       PipeTwo.run = true;
-
+      digitalWrite(ShowerSound, LOW);
+      
       if(PipeTwo.Stream > PipeTwo.Begin){
         for(int x = PipeTwo.Pixel; x < PipeTwo.Stream; x++){strip.setPixelColor(x, 0, WaveHue[x -(Length*(x/Length))], 150);}
         if(PipeTwo.Stream <= PipeTwo.End){PipeTwo.Stream++;}
@@ -278,7 +279,6 @@ void BathTub(){
         PipeTwo.Stream = PipeTwo.Begin;
         PipeTwo.Pixel = PipeTwo.Begin;
         digitalWrite(Output_2,LOW);
-        digitalWrite(ShowerSound, LOW);
       }
     }
 
@@ -310,7 +310,6 @@ void Shower(){
     }
 
     else if(PipeThree.start == true && CurrentTime >= ShowerWait.LastTriggered + ShowerWait.Duration){
-      digitalWrite(Output_3,LOW);
       PipeThree.run = true;
 
       if(PipeThree.Stream > PipeThree.Begin){
@@ -330,6 +329,7 @@ void Shower(){
         PipeThree.Poo = PipeThree.Begin;
         PipeThree.Stream = PipeThree.Begin;
         PipeThree.Pixel = PipeThree.Begin;
+        digitalWrite(Output_3,LOW);
       }
     }
 
@@ -670,7 +670,7 @@ void Poo(){
         PooOne.Start[1] = (LowerSewersEnd - LowerSewersLength);
         PooOne.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
         PooOne.End[0] = UpperSewerStart + LengthOfUpperSewer;
-        PooOne.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator)-1);
+        PooOne.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator));
         PooOne.End[2] = LowerSewersStart;
 
         PooOne.Poo[0]=PooOne.Start[0];
@@ -682,7 +682,7 @@ void Poo(){
         PooTwo.Start[1] = (LowerSewersEnd - LowerSewersLength);
         PooTwo.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
         PooTwo.End[0] = UpperSewerStart + LengthOfUpperSewer;
-        PooTwo.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator)-1);
+        PooTwo.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator));
         PooTwo.End[2] = LowerSewersStart;
 
         PooTwo.Poo[0]=PooTwo.Start[0];
@@ -694,7 +694,7 @@ void Poo(){
         PooThree.Start[1] = (LowerSewersEnd - LowerSewersLength);
         PooThree.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
         PooThree.End[0] = UpperSewerStart + LengthOfUpperSewer;
-        PooThree.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator)-1);
+        PooThree.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator));
         PooThree.End[2] = LowerSewersStart;
 
         PooThree.Poo[0]=PooThree.Start[0];
@@ -706,7 +706,7 @@ void Poo(){
         PooFour.Start[1] = (LowerSewersEnd - LowerSewersLength);
         PooFour.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
         PooFour.End[0] = UpperSewerStart + LengthOfUpperSewer;
-        PooFour.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator)-1);
+        PooFour.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator));
         PooFour.End[2] = LowerSewersStart;
 
         PooFour.Poo[0]=PooFour.Start[0];
@@ -721,7 +721,7 @@ void Poo(){
         PooOne.Start[1] = (LowerSewersEnd - LowerSewersLength);
         PooOne.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
         PooOne.End[0] = UpperSewerStart + LengthOfUpperSewer;
-        PooOne.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator)-1);
+        PooOne.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator));
         PooOne.End[2] = LowerSewersStart;
 
         PooOne.Poo[0]=PooOne.Start[0];
@@ -733,7 +733,7 @@ void Poo(){
         PooTwo.Start[1] = (LowerSewersEnd - LowerSewersLength);
         PooTwo.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
         PooTwo.End[0] = UpperSewerStart + LengthOfUpperSewer;
-        PooTwo.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator)-1);
+        PooTwo.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator));
         PooTwo.End[2] = LowerSewersStart;
 
         PooTwo.Poo[0]=PooTwo.Start[0];
@@ -745,7 +745,7 @@ void Poo(){
         PooThree.Start[1] = (LowerSewersEnd - LowerSewersLength);
         PooThree.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
         PooThree.End[0] = UpperSewerStart + LengthOfUpperSewer;
-        PooThree.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator)-1);
+        PooThree.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator));
         PooThree.End[2] = LowerSewersStart;
 
         PooThree.Poo[0]=PooThree.Start[0];
@@ -757,7 +757,7 @@ void Poo(){
         PooFour.Start[1] = (LowerSewersEnd - LowerSewersLength);
         PooFour.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
         PooFour.End[0] = UpperSewerStart + LengthOfUpperSewer;
-        PooFour.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator)-1);
+        PooFour.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator));
         PooFour.End[2] = LowerSewersStart;
 
         PooFour.Poo[0]=PooFour.Start[0];
@@ -782,7 +782,7 @@ void Poo(){
 
 void PooOneTravel() {
     for(int x = 0; x < StreakLength; x++){
-      if(PooOne.Poo[x] != 0){strip.setPixelColor(PooOne.Poo[x],StreakHue[x],0,0);}
+      if(PooOne.Poo[x] != 0 && PooOne.Poo[x] != PooOne.End[PooOne.CurrentPath]){strip.setPixelColor(PooOne.Poo[x],StreakHue[x],0,0);}
     }
 
     for(int x = StreakLength; x > 0; x--){PooOne.Poo[x] = PooOne.Poo[x-1];}
@@ -792,26 +792,40 @@ void PooOneTravel() {
       PooOne.End[2] = LowerSewersEnd;
     }
     
-    if(PooOne.Poo[0] < PooOne.End[PooOne.CurrentPath]){PooOne.Poo[0]++;}
-    else if(PooOne.Poo[0] > PooOne.End[PooOne.CurrentPath]){PooOne.Poo[0]--;}
-    if(PooOne.Poo[0] == PooOne.End[PooOne.CurrentPath]){
-      PooOne.CurrentPath++;
-      PooOne.Poo[0] =PooOne.Start[PooOne.CurrentPath];
+
+    if(PooOne.Start[PooOne.CurrentPath+1] != 0){
+      if(PooOne.Poo[0] < PooOne.End[PooOne.CurrentPath]){PooOne.Poo[0]++;}
+      else if(PooOne.Poo[0] > PooOne.End[PooOne.CurrentPath]){PooOne.Poo[0]--;}
+      if(PooOne.Poo[0] == PooOne.End[PooOne.CurrentPath]){
+        PooOne.CurrentPath++;
+        PooOne.Poo[0] =PooOne.Start[PooOne.CurrentPath];
+      }
+    }
+    else{
+      if(PooOne.Poo[0] < PooOne.End[PooOne.CurrentPath]){PooOne.Poo[0]++;}
+      else if(PooOne.Poo[0] > PooOne.End[PooOne.CurrentPath]){PooOne.Poo[0]--;}
+      if(PooOne.Poo[StreakLength-1] == PooOne.End[PooOne.CurrentPath]){
+        for(int x = 0; x < StreakLength; x++){PooOne.End[x] = 0;}
+        for(int x = 0; x < StreakLength; x++){PooOne.Start[x] = 0;}
+        for(int x = 0; x < StreakLength; x++){PooOne.Poo[x] = 0;}
+        PooOne.CurrentPath = 0;
+        PooOne.active = false;
+      }
     }
 
 
-    if(PooOne.End[PooOne.CurrentPath] == 0 || PooOne.CurrentPath == 4){
-      for(int x = 0; x < StreakLength; x++){PooOne.End[x] = 0;}
-      for(int x = 0; x < StreakLength; x++){PooOne.Start[x] = 0;}
-      for(int x = 0; x < StreakLength; x++){PooOne.Poo[x] = 0;}
-      PooOne.CurrentPath = 0;
-      PooOne.active = false;
-    }
+    // if(PooOne.End[PooOne.CurrentPath] == 0 || PooOne.CurrentPath == 4){
+    //   for(int x = 0; x < StreakLength; x++){PooOne.End[x] = 0;}
+    //   for(int x = 0; x < StreakLength; x++){PooOne.Start[x] = 0;}
+    //   for(int x = 0; x < StreakLength; x++){PooOne.Poo[x] = 0;}
+    //   PooOne.CurrentPath = 0;
+    //   PooOne.active = false;
+    // }
 }
 
 void PooTwoTravel() {
     for(int x = 0; x < StreakLength; x++){
-      if(PooTwo.Poo[x] != 0){strip.setPixelColor(PooTwo.Poo[x],StreakHue[x],0,0);}
+      if(PooTwo.Poo[x] != 0 && PooTwo.Poo[x] != PooTwo.End[PooTwo.CurrentPath]){strip.setPixelColor(PooTwo.Poo[x],StreakHue[x],0,0);}
     }
 
     for(int x = StreakLength; x > 0; x--){PooTwo.Poo[x] = PooTwo.Poo[x-1];}
@@ -821,26 +835,39 @@ void PooTwoTravel() {
       PooTwo.End[2] = LowerSewersEnd;
     }
     
-    if(PooTwo.Poo[0] < PooTwo.End[PooTwo.CurrentPath]){PooTwo.Poo[0]++;}
-    else if(PooTwo.Poo[0] > PooTwo.End[PooTwo.CurrentPath]){PooTwo.Poo[0]--;}
-    if(PooTwo.Poo[0] == PooTwo.End[PooTwo.CurrentPath]){
-      PooTwo.CurrentPath++;
-      PooTwo.Poo[0] =PooTwo.Start[PooTwo.CurrentPath];
+    if(PooTwo.Start[PooTwo.CurrentPath +1] != 0){
+      if(PooTwo.Poo[0] < PooTwo.End[PooTwo.CurrentPath]){PooTwo.Poo[0]++;}
+      else if(PooTwo.Poo[0] > PooTwo.End[PooTwo.CurrentPath]){PooTwo.Poo[0]--;}
+      if(PooTwo.Poo[0] == PooTwo.End[PooTwo.CurrentPath]){
+        PooTwo.CurrentPath++;
+        PooTwo.Poo[0] =PooTwo.Start[PooTwo.CurrentPath];
+      }
+    }
+    else{
+      if(PooTwo.Poo[0] < PooTwo.End[PooTwo.CurrentPath]){PooTwo.Poo[0]++;}
+      else if(PooTwo.Poo[0] > PooTwo.End[PooTwo.CurrentPath]){PooTwo.Poo[0]--;}
+      if(PooTwo.Poo[StreakLength -1] == PooTwo.End[PooTwo.CurrentPath]){
+        for(int x = 0; x < StreakLength; x++){PooTwo.End[x] = 0;}
+        for(int x = 0; x < StreakLength; x++){PooTwo.Start[x] = 0;}
+        for(int x = 0; x < StreakLength; x++){PooTwo.Poo[x] = 0;}
+        PooTwo.CurrentPath = 0;
+        PooTwo.active = false;
+      }
     }
 
 
-    if(PooTwo.End[PooTwo.CurrentPath] == 0 || PooTwo.CurrentPath == 4){
-      for(int x = 0; x < StreakLength; x++){PooTwo.End[x] = 0;}
-      for(int x = 0; x < StreakLength; x++){PooTwo.Start[x] = 0;}
-      for(int x = 0; x < StreakLength; x++){PooTwo.Poo[x] = 0;}
-      PooTwo.CurrentPath = 0;
-      PooTwo.active = false;
-    }
+    // if(PooTwo.End[PooTwo.CurrentPath] == 0 || PooTwo.CurrentPath == 4){
+    //   for(int x = 0; x < StreakLength; x++){PooTwo.End[x] = 0;}
+    //   for(int x = 0; x < StreakLength; x++){PooTwo.Start[x] = 0;}
+    //   for(int x = 0; x < StreakLength; x++){PooTwo.Poo[x] = 0;}
+    //   PooTwo.CurrentPath = 0;
+    //   PooTwo.active = false;
+    // }
 }
 
 void PooThreeTravel() {
     for(int x = 0; x < StreakLength; x++){
-      if(PooThree.Poo[x] != 0){strip.setPixelColor(PooThree.Poo[x],StreakHue[x],0,0);}
+      if(PooThree.Poo[x] != 0 && PooThree.Poo[x] != PooThree.End[PooThree.CurrentPath]){strip.setPixelColor(PooThree.Poo[x],StreakHue[x],0,0);}
     }
 
     for(int x = StreakLength; x > 0; x--){PooThree.Poo[x] = PooThree.Poo[x-1];}
@@ -850,26 +877,40 @@ void PooThreeTravel() {
       PooThree.End[2] = LowerSewersEnd;
     }
     
-    if(PooThree.Poo[0] < PooThree.End[PooThree.CurrentPath]){PooThree.Poo[0]++;}
-    else if(PooThree.Poo[0] > PooThree.End[PooThree.CurrentPath]){PooThree.Poo[0]--;}
-    if(PooThree.Poo[0] == PooThree.End[PooThree.CurrentPath]){
-      PooThree.CurrentPath++;
-      PooThree.Poo[0] =PooThree.Start[PooThree.CurrentPath];
+
+    if(PooThree.Start[PooThree.CurrentPath +1] != 0){
+      if(PooThree.Poo[0] < PooThree.End[PooThree.CurrentPath]){PooThree.Poo[0]++;}
+      else if(PooThree.Poo[0] > PooThree.End[PooThree.CurrentPath]){PooThree.Poo[0]--;}
+      if(PooThree.Poo[0] == PooThree.End[PooThree.CurrentPath]){
+        PooThree.CurrentPath++;
+        PooThree.Poo[0] =PooThree.Start[PooThree.CurrentPath];
+      }
+    }
+    else{
+      if(PooThree.Poo[0] < PooThree.End[PooThree.CurrentPath]){PooThree.Poo[0]++;}
+      else if(PooThree.Poo[0] > PooThree.End[PooThree.CurrentPath]){PooThree.Poo[0]--;}
+      if(PooThree.Poo[StreakLength -1] == PooThree.End[PooThree.CurrentPath]){
+        for(int x = 0; x < StreakLength; x++){PooThree.End[x] = 0;}
+        for(int x = 0; x < StreakLength; x++){PooThree.Start[x] = 0;}
+        for(int x = 0; x < StreakLength; x++){PooThree.Poo[x] = 0;}
+        PooThree.CurrentPath = 0;
+        PooThree.active = false;
+      }
     }
 
 
-    if(PooThree.End[PooThree.CurrentPath] == 0 || PooThree.CurrentPath == 4){
-      for(int x = 0; x < StreakLength; x++){PooThree.End[x] = 0;}
-      for(int x = 0; x < StreakLength; x++){PooThree.Start[x] = 0;}
-      for(int x = 0; x < StreakLength; x++){PooThree.Poo[x] = 0;}
-      PooThree.CurrentPath = 0;
-      PooThree.active = false;
-    }
+    // if(PooThree.End[PooThree.CurrentPath] == 0 || PooThree.CurrentPath == 4){
+    //   for(int x = 0; x < StreakLength; x++){PooThree.End[x] = 0;}
+    //   for(int x = 0; x < StreakLength; x++){PooThree.Start[x] = 0;}
+    //   for(int x = 0; x < StreakLength; x++){PooThree.Poo[x] = 0;}
+    //   PooThree.CurrentPath = 0;
+    //   PooThree.active = false;
+    // }
 }
 
 void PooFourTravel() {
     for(int x = 0; x < StreakLength; x++){
-      if(PooFour.Poo[x] != 0){strip.setPixelColor(PooFour.Poo[x],StreakHue[x],0,0);}
+      if(PooFour.Poo[x] != 0 && PooFour.Poo[x] != PooFour.End[PooFour.CurrentPath]){strip.setPixelColor(PooFour.Poo[x],StreakHue[x],0,0);}
     }
 
     for(int x = StreakLength; x > 0; x--){PooFour.Poo[x] = PooFour.Poo[x-1];}
@@ -879,20 +920,33 @@ void PooFourTravel() {
       PooFour.End[2] = LowerSewersEnd;
     }
     
-    if(PooFour.Poo[0] < PooFour.End[PooFour.CurrentPath]){PooFour.Poo[0]++;}
-    else if(PooFour.Poo[0] > PooFour.End[PooFour.CurrentPath]){PooFour.Poo[0]--;}
-    if(PooFour.Poo[0] == PooFour.End[PooFour.CurrentPath]){
-      PooFour.CurrentPath++;
-      PooFour.Poo[0] =PooFour.Start[PooFour.CurrentPath];
+    if(PooFour.Start[PooFour.CurrentPath +1] != 0){
+      if(PooFour.Poo[0] < PooFour.End[PooFour.CurrentPath]){PooFour.Poo[0]++;}
+      else if(PooFour.Poo[0] > PooFour.End[PooFour.CurrentPath]){PooFour.Poo[0]--;}
+      if(PooFour.Poo[0] == PooFour.End[PooFour.CurrentPath]){
+        PooFour.CurrentPath++;
+        PooFour.Poo[0] =PooFour.Start[PooFour.CurrentPath];
+      }
+    }
+    else{
+      if(PooFour.Poo[0] < PooFour.End[PooFour.CurrentPath]){PooFour.Poo[0]++;}
+      else if(PooFour.Poo[0] > PooFour.End[PooFour.CurrentPath]){PooFour.Poo[0]--;}
+      if(PooFour.Poo[StreakLength -1] == PooFour.End[PooFour.CurrentPath]){
+        for(int x = 0; x < StreakLength; x++){PooFour.End[x] = 0;}
+        for(int x = 0; x < StreakLength; x++){PooFour.Start[x] = 0;}
+        for(int x = 0; x < StreakLength; x++){PooFour.Poo[x] = 0;}
+        PooFour.CurrentPath = 0;
+        PooFour.active = false;
+      }
     }
 
-    if(PooFour.End[PooFour.CurrentPath] == 0 || PooFour.CurrentPath == 4){
-      for(int x = 0; x < StreakLength; x++){PooFour.End[x] = 0;}
-      for(int x = 0; x < StreakLength; x++){PooFour.Start[x] = 0;}
-      for(int x = 0; x < StreakLength; x++){PooFour.Poo[x] = 0;}
-      PooFour.CurrentPath = 0;
-      PooFour.active = false;
-    }
+    // if(PooFour.End[PooFour.CurrentPath] == 0 || PooFour.CurrentPath == 4){
+    //   for(int x = 0; x < StreakLength; x++){PooFour.End[x] = 0;}
+    //   for(int x = 0; x < StreakLength; x++){PooFour.Start[x] = 0;}
+    //   for(int x = 0; x < StreakLength; x++){PooFour.Poo[x] = 0;}
+    //   PooFour.CurrentPath = 0;
+    //   PooFour.active = false;
+    // }
 }
 
 void loop() {
