@@ -13,6 +13,10 @@
 #define ToiletSound 52
 #define ShowerSound 53
 
+#define RainLvl1 51
+#define RainLvl2 49
+#define RainLvl3 47
+
 #define Rain_Input 8
 
 #define Rain_Output1 22
@@ -171,6 +175,10 @@ void setup() {
 
   pinMode(ShowerSound,OUTPUT);
   pinMode(ToiletSound,OUTPUT);
+
+  pinMode(RainLvl1,OUTPUT);
+  pinMode(RainLvl2,OUTPUT);
+  pinMode(RainLvl3,OUTPUT);
 
   pinMode(Input_1,INPUT);
   pinMode(Input_2,INPUT);
@@ -409,6 +417,10 @@ void Rain(){
     digitalWrite(Rain_Output1, HIGH);
     digitalWrite(Rain_Output2, LOW);
     digitalWrite(Rain_Output3, LOW);
+
+    digitalWrite(RainLvl1, HIGH);
+    digitalWrite(RainLvl2,LOW);
+
     ProjectedSpeed.Duration = 11;
     // RainFrame.Duration = 10;
     // SewersFrame.Duration = 10;
@@ -417,6 +429,11 @@ void Rain(){
     digitalWrite(Rain_Output1, HIGH);
     digitalWrite(Rain_Output2, HIGH);
     digitalWrite(Rain_Output3, LOW);
+
+    digitalWrite(RainLvl1, HIGH);
+    digitalWrite(RainLvl2, HIGH);
+    digitalWrite(RainLvl3,LOW);
+
     ProjectedSpeed.Duration = 9;
     // RainFrame.Duration = 9;
     // SewersFrame.Duration = 9;
@@ -426,6 +443,11 @@ void Rain(){
     digitalWrite(Rain_Output1, HIGH);
     digitalWrite(Rain_Output2, HIGH);
     digitalWrite(Rain_Output3, HIGH);
+
+    digitalWrite(RainLvl1, HIGH);
+    digitalWrite(RainLvl1, HIGH);
+    digitalWrite(RainLvl2,HIGH);
+
     ProjectedSpeed.Duration = 7;
     // RainFrame.Duration = 7;
     // SewersFrame.Duration = 7;
@@ -435,6 +457,11 @@ void Rain(){
     digitalWrite(Rain_Output1, LOW);
     digitalWrite(Rain_Output2, LOW);
     digitalWrite(Rain_Output3, LOW);
+
+    digitalWrite(RainLvl1,LOW);
+    digitalWrite(RainLvl2,LOW);
+    digitalWrite(RainLvl3,LOW);
+
     ProjectedSpeed.Duration = 11;
     // RainFrame.Duration = 10;
     // SewersFrame.Duration = 10;
