@@ -1,31 +1,31 @@
 #include <Adafruit_NeoPixel.h>
 
-#define Output_1 2
-#define Output_2 3
-#define Output_3 4
-#define Output_4 5
+#define Output_1 2 //
+#define Output_2 3 //
+#define Output_3 4 //
+#define Output_4 5 //
 
-#define Input_1 10
-#define Input_2 11
-#define Input_3 12
-#define Input_4 7
+#define Input_1 13 //
+#define Input_2 12 //
+#define Input_3 11 //
+#define Input_4 10 //
 
-#define ToiletSound 52
-#define ShowerSound 53
+#define ToiletSound 26 //
+#define ShowerSound 27 //
 
-#define RainLvl1 51
-#define RainLvl2 49
-#define RainLvl3 47
+#define RainLvl1 51 //
+#define RainLvl2 49 //
+#define RainLvl3 47 //
 
-#define Rain_Input 8
+#define Rain_Input 8 //
 
-#define Rain_Output1 22
-#define Rain_Output2 23
-#define Rain_Output3 24
+#define Rain_Output1 22 //
+#define Rain_Output2 23 //
+#define Rain_Output3 24 //
 
-#define Pixel_Pin 9
+#define Pixel_Pin 9 //
 #define Num_Pixels 261
-#define BRIGHTNESS 200
+#define BRIGHTNESS 255
 
 int Runoff = 0;
 
@@ -78,7 +78,7 @@ Time RunoffWait = {0,6};
 Time ProjectedSpeed = {0,10};
 Time GutterSpeedWait = RainWait;
 Time SewersSpeedWait = RainWait;
-Time RainHold = {0,5000};
+Time RainHold = {0,1000};
 Time PooOneSpeed = {0,11};
 
 // struct GutterPixel{
@@ -92,10 +92,10 @@ Time PooOneSpeed = {0,11};
 // GutterPixel GutterThree = {2,0,0};
 // GutterPixel GutterFour = {3,0,0};
 
-  const int PipeOneSewer = 11;
-  const int PipeTwoSewer = 16;
-  const int PipeThreeSewer = 23;
-  const int PipeFourSewer = 6;
+  const int PipeOneSewer = 10;
+  const int PipeTwoSewer = 15;
+  const int PipeThreeSewer = 22;
+  const int PipeFourSewer = 5;
   // const int PipeSewerDropSize = 2;
 
   const int UpperSewerStart = 70;
@@ -145,17 +145,19 @@ bool RainOn = false;
 
 Adafruit_NeoPixel strip(Num_Pixels, Pixel_Pin, NEO_GRBW + NEO_KHZ800);
 
+const int RainMultiplyer = 50;
+
 void WaveUpdate(){
   for(int x=0; x < Length; x++){
-    ColorHue[x]= (150/2)+((150/2) * cos(x * (3.14/Length)));
-    RunoffHue[x]= (150/2)+((150/2) * sin(x *(3.14/Length)-1.57));
-    WaveHue[x]= (150/2)-((150/2) * sin(x * (3.14/Length)));
-    SewerWaveHue[x]= (150/2)-((150/2) * sin(x * (3.14/Length)));
-    GutterHue[x]= (30/2)+((30/2)*cos(x*(6.26/Length)));
+    ColorHue[x]= (200/2)+((200/2) * cos(x * (3.14/Length)));
+    RunoffHue[x]= (200/2)+((200/2) * sin(x *(3.14/Length)-1.57));
+    WaveHue[x]= (200/2)-((200/2) * sin(x * (3.14/Length)));
+    SewerWaveHue[x]= (200/2)-((200/2) * sin(x * (3.14/Length)));
+    GutterHue[x]= (40/2)+((40/2)*cos(x*(6.26/Length)));
   }
 
   for(int x=0; x < StreakLength; x++){
-    StreakHue[x] = (150/2)+((150/2)*cos(x*(3.14/StreakLength)));
+    StreakHue[x] = (200/2)+((200/2)*cos(x*(3.14/StreakLength)));
   }
   
   ColorHue[Length-1] = 0;
@@ -419,7 +421,6 @@ void Rain(){
     digitalWrite(Rain_Output3, LOW);
 
     digitalWrite(RainLvl1, HIGH);
-    digitalWrite(RainLvl2,LOW);
 
     ProjectedSpeed.Duration = 11;
     // RainFrame.Duration = 10;
@@ -432,7 +433,6 @@ void Rain(){
 
     digitalWrite(RainLvl1, HIGH);
     digitalWrite(RainLvl2, HIGH);
-    digitalWrite(RainLvl3,LOW);
 
     ProjectedSpeed.Duration = 9;
     // RainFrame.Duration = 9;
@@ -490,7 +490,10 @@ void Rain(){
     }
   }
   else if(StormLevel > ProjectedStormLevel){
-    if(CurrentTime >= RainWait.LastTriggered + RainWait.Duration && CurrentTime >= RainHold.LastTriggered + RainHold.Duration){
+    if(StormLevel == 2){RainHold.Duration = 1500;}
+    else {RainHold.Duration = 1000;}
+    
+    if(CurrentTime >= RainWait.LastTriggered + RainWait.Duration  && CurrentTime >= RainHold.LastTriggered + RainHold.Duration){
       StormLevel--;
       RainWait.LastTriggered = CurrentTime;
     }
