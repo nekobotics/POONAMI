@@ -242,7 +242,7 @@ void Toilet(){
     if(PipeOne.start == true && allActive != true && CurrentTime >= PipeOnePooWait.LastTriggered + PipeOnePooWait.Duration && PipeOne.Pixel < PipeOne.End + StreakLength){
       for(int x = 0; x < StreakLength; x++){
         if(PipeOne.Poo - x < PipeOne.Begin){break;}
-        else if(PipeOne.Poo - x <= PipeOne.End){strip.setPixelColor(PipeOne.Poo - x, StreakHue[x], 0,0);}
+        else if(PipeOne.Poo - x <= PipeOne.End){strip.setPixelColor(PipeOne.Poo - x, StreakHue[x], StreakHue[x],0);}
       }
 
       if(PipeOne.Poo < PipeOne.End + StreakLength){PipeOne.Poo++;}
@@ -295,7 +295,7 @@ void BathTub(){
     if(PipeTwo.start == true && allActive != true && CurrentTime >= PipeTwoPooWait.LastTriggered + PipeTwoPooWait.Duration && PipeTwo.Pixel < PipeTwo.End + StreakLength){
       for(int x = 0; x < StreakLength; x++){
         if(PipeTwo.Poo - x < PipeTwo.Begin){break;}
-        else if(PipeTwo.Poo - x <= PipeTwo.End){strip.setPixelColor(PipeTwo.Poo - x, StreakHue[x], 0,0);}
+        else if(PipeTwo.Poo - x <= PipeTwo.End){strip.setPixelColor(PipeTwo.Poo - x, StreakHue[x], StreakHue[x],0);}
       }
 
       if(PipeTwo.Poo < PipeTwo.End + StreakLength){PipeTwo.Poo++;}
@@ -346,7 +346,7 @@ void Shower(){
     if(PipeThree.start == true && allActive != true && CurrentTime >= PipeThreePooWait.LastTriggered + PipeThreePooWait.Duration && PipeThree.Pixel < PipeThree.End + StreakLength){
       for(int x = 0; x < StreakLength; x++){
         if(PipeThree.Poo - x < PipeThree.Begin){break;}
-        else if(PipeThree.Poo - x <= PipeThree.End){strip.setPixelColor(PipeThree.Poo - x, StreakHue[x], 0,0);}
+        else if(PipeThree.Poo - x <= PipeThree.End){strip.setPixelColor(PipeThree.Poo - x, StreakHue[x], StreakHue[x],0);}
       }
 
       if(PipeThree.Poo < PipeThree.End + StreakLength){PipeThree.Poo++;}
@@ -397,7 +397,7 @@ void Sink(){
     if(PipeFour.start == true && allActive != true && CurrentTime >= PipeFourPooWait.LastTriggered + PipeFourPooWait.Duration && PipeFour.Pixel < PipeFour.End +  StreakLength){
       for(int x = 0; x < StreakLength; x++){
         if(PipeFour.Poo - x < PipeFour.Begin){break;}
-        else if(PipeFour.Poo - x <= PipeFour.End){strip.setPixelColor(PipeFour.Poo - x, StreakHue[x], 0,0);}
+        else if(PipeFour.Poo - x <= PipeFour.End){strip.setPixelColor(PipeFour.Poo - x, StreakHue[x], StreakHue[x],0);}
       }
 
       if(PipeFour.Poo < PipeFour.End + StreakLength){PipeFour.Poo++;}
@@ -812,7 +812,7 @@ void Poo(){
 
 void PooOneTravel() {
     for(int x = 0; x < StreakLength; x++){
-      if(PooOne.Poo[x] != 0 && PooOne.Poo[x] != PooOne.End[PooOne.CurrentPath]){strip.setPixelColor(PooOne.Poo[x],StreakHue[x],0,0);}
+      if(PooOne.Poo[x] != 0 && PooOne.Poo[x] != PooOne.End[PooOne.CurrentPath]){strip.setPixelColor(PooOne.Poo[x],StreakHue[x],StreakHue[x],0);}
     }
 
     for(int x = StreakLength; x > 0; x--){PooOne.Poo[x] = PooOne.Poo[x-1];}
@@ -855,7 +855,7 @@ void PooOneTravel() {
 
 void PooTwoTravel() {
     for(int x = 0; x < StreakLength; x++){
-      if(PooTwo.Poo[x] != 0 && PooTwo.Poo[x] != PooTwo.End[PooTwo.CurrentPath]){strip.setPixelColor(PooTwo.Poo[x],StreakHue[x],0,0);}
+      if(PooTwo.Poo[x] != 0 && PooTwo.Poo[x] != PooTwo.End[PooTwo.CurrentPath]){strip.setPixelColor(PooTwo.Poo[x],StreakHue[x],StreakHue[x],0);}
     }
 
     for(int x = StreakLength; x > 0; x--){PooTwo.Poo[x] = PooTwo.Poo[x-1];}
@@ -897,7 +897,7 @@ void PooTwoTravel() {
 
 void PooThreeTravel() {
     for(int x = 0; x < StreakLength; x++){
-      if(PooThree.Poo[x] != 0 && PooThree.Poo[x] != PooThree.End[PooThree.CurrentPath]){strip.setPixelColor(PooThree.Poo[x],StreakHue[x],0,0);}
+      if(PooThree.Poo[x] != 0 && PooThree.Poo[x] != PooThree.End[PooThree.CurrentPath]){strip.setPixelColor(PooThree.Poo[x],StreakHue[x],StreakHue[x],0);}
     }
 
     for(int x = StreakLength; x > 0; x--){PooThree.Poo[x] = PooThree.Poo[x-1];}
@@ -940,7 +940,7 @@ void PooThreeTravel() {
 
 void PooFourTravel() {
     for(int x = 0; x < StreakLength; x++){
-      if(PooFour.Poo[x] != 0 && PooFour.Poo[x] != PooFour.End[PooFour.CurrentPath]){strip.setPixelColor(PooFour.Poo[x],StreakHue[x],0,0);}
+      if(PooFour.Poo[x] != 0 && PooFour.Poo[x] != PooFour.End[PooFour.CurrentPath]){strip.setPixelColor(PooFour.Poo[x],StreakHue[x],StreakHue[x],0);}
     }
 
     for(int x = StreakLength; x > 0; x--){PooFour.Poo[x] = PooFour.Poo[x-1];}
