@@ -36,6 +36,7 @@ const int GutterLength = 3;
 
 int StormLevel = 0;
 int ProjectedStormLevel = 0;
+int StormIntensity;
 bool RainPush = false;
 bool Raining = false;
 
@@ -105,7 +106,12 @@ Time PooOneSpeed = {0,11};
   const int LowerSewersStart = 143;
   const int LowerSewersEnd = Num_Pixels - 12;
   const int LowerSewersLength = 46;
-  const int DrainageRegulator = LowerSewersLength - 14;
+  const int DrainageLength = 14;
+  const int DrainageRegulator = LowerSewersStart + DrainageLength;
+  const int WaterTreatmentStart = LowerSewersEnd - LowerSewersLength;
+  const int WaterTreatmentEnd = LowerSewersEnd;
+  const int OceanDumpStart = LowerSewersStart + LowerSewersLength;
+  const int OceanDumpEnd = LowerSewersStart;
 
 const int Length = 20;
 
@@ -506,6 +512,7 @@ void Rain(){
   if(StormLevel > 0 && ProjectedStormLevel == 0){Raining = true;}
   else{Raining = false;}
 
+  StormIntensity = StormLevel + 1;
 }
 
 void RainGutters(){
@@ -550,6 +557,47 @@ void UpperSewers(){
 }
 
 void LowerSewers(){
+  if(CurrentTime >= SewersFrame.Duration+SewersFrame.LastTriggered){
+    if(StromLevel < 3){
+      for(int x = 0; x < LowerSewersLength){
+        strip.setPixelColor(WaterTreatmentStart + x,0,(StormIntensity * (SewerWaveHue[x-(Length*(x/Length))]/3) + 15), (20 + StormIntensity * 40));
+        if(x > DrainageLength - Runoff){strip.setPixelColor(OceanDumpStart - x,0,(StormIntensity * (SewerWaveHue[x-(Length*(x/Length))]/3) + 15), (20 + StormIntensity * 40));}
+        else{strip.setPixelColor(OceanDumpStart - x,0,0,0);}
+
+        if(Runoff + Length > 0){
+          if(CurrentTime >= RunoffWait.LastTriggered + RunoffWait.Duration){
+            for(int x = 0; x < Length; x++){
+              if(Runoff - x < 0){break;}
+              else if(Runoff - x <= DrainageLength){strip.setPixelColor(OceanDumpEnd + (Runoff - x),0,RunoffHue[x],RunoffHue[x]);}
+            }
+            Runoff--;
+            RunoffWait.LastTriggered = CurrentTime;
+          }
+        }
+      }
+    }
+    else if (StormLevel == 3){
+      for(int x = 0; x < LowerSewersLength){
+        strip.setPixelColor(WaterTreatmentStart + x,0,(StormIntensity * (SewerWaveHue[x-(Length*(x/Length))]/3) + 15), (20 + StormIntensity * 40));
+        if(x > DrainageLength - Runoff){strip.setPixelColor(OceanDumpStart - x,0,(StormIntensity * (SewerWaveHue[x-(Length*(x/Length))]/3) + 15), (20 + StormIntensity * 40));}
+
+        if(Runoff <= DrainageLength + Length){
+          if(CurrentTime >= RunoffWait.LastTriggered + RunoffWait.Duration){
+            for(int x = 0; x < Length; x++){
+              if(Runoff - x < 0){break;}
+              else if(Runoff - x <= DrainageLength){strip.setPixelColor((OceanDumpEnd + DrainageLength - (Runoff - x)), 0, RunoffHue[x], RunoffHue[x]);}
+            }
+          }
+          Runoff++;
+          RunoffWait.LastTriggered = CurrentTime;
+        }
+      }
+    }
+  }
+
+
+ return;
+
  if(CurrentTime  >= SewersFrame.Duration + SewersFrame.LastTriggered){
    if(StormLevel < 3){
       for(int x = 0; x < LowerSewersLength; x++){
