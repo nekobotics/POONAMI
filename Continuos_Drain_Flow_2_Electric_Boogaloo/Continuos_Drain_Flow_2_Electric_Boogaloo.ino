@@ -28,6 +28,7 @@
 #define BRIGHTNESS 255
 
 int Runoff = 0;
+bool RunoffDrain = false;
 
 bool allActive = false;
 
@@ -561,19 +562,22 @@ void LowerSewers(){
     if(StormLevel < 3){
       for(int x = 0; x < LowerSewersLength;x++){
         strip.setPixelColor(WaterTreatmentStart + x,0,(StormIntensity * (SewerWaveHue[x-(Length*(x/Length))]/3) + 15), (20 + StormIntensity * 40));
-        if(x < LowerSewersLength - DrainageLength + Runoff){strip.setPixelColor(OceanDumpStart - x,0,(StormIntensity * (SewerWaveHue[x-(Length*(x/Length))]/3) + 15), (20 + StormIntensity * 40));}
+        if((x < LowerSewersLength - DrainageLength + Runoff && RunoffDrain == false) || x < LowerSewersLength - DrainageLength){strip.setPixelColor(OceanDumpStart - x,0,(StormIntensity * (SewerWaveHue[x-(Length*(x/Length))]/3) + 15), (20 + StormIntensity * 40));}
         else{strip.setPixelColor(OceanDumpStart - x,0,0,0);}
       }
+
       if(Runoff > 0){
+        if(Runoff < Length){RunoffDrain = true;}
         if(CurrentTime >= RunoffWait.LastTriggered + RunoffWait.Duration){
           for(int i = 0; i < Length; i++){
             if(Runoff - i < 0){break;}
-            else if(Runoff - i <= DrainageLength){strip.setPixelColor((OceanDumpEnd + DrainageLength) - (Runoff - i),0,RunoffHue[i],RunoffHue[i]);}
+            else if(Runoff - i <= DrainageLength){strip.setPixelColor(OceanDumpEnd + (Runoff - i),0,RunoffHue[i],RunoffHue[i]);}
           }
           Runoff--;
           RunoffWait.LastTriggered = CurrentTime;
           }
        }
+      else{RunoffDrain = false;}
     }
 
     else if (StormLevel == 3){
