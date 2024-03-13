@@ -558,13 +558,13 @@ void UpperSewers(){
 
 void LowerSewers(){
   if(CurrentTime >= SewersFrame.Duration+SewersFrame.LastTriggered){
-    if(StromLevel < 3){
-      for(int x = 0; x < LowerSewersLength){
+    if(StormLevel < 3){
+      for(int x = 0; x < LowerSewersLength;x++){
         strip.setPixelColor(WaterTreatmentStart + x,0,(StormIntensity * (SewerWaveHue[x-(Length*(x/Length))]/3) + 15), (20 + StormIntensity * 40));
-        if(x > DrainageLength - Runoff){strip.setPixelColor(OceanDumpStart - x,0,(StormIntensity * (SewerWaveHue[x-(Length*(x/Length))]/3) + 15), (20 + StormIntensity * 40));}
+        if(x < LowerSewersLength - DrainageLength){strip.setPixelColor(OceanDumpStart - x,0,(StormIntensity * (SewerWaveHue[x-(Length*(x/Length))]/3) + 15), (20 + StormIntensity * 40));}
         else{strip.setPixelColor(OceanDumpStart - x,0,0,0);}
 
-        if(Runoff + Length > 0){
+        if(Runoff > 0){
           if(CurrentTime >= RunoffWait.LastTriggered + RunoffWait.Duration){
             for(int x = 0; x < Length; x++){
               if(Runoff - x < 0){break;}
@@ -577,9 +577,9 @@ void LowerSewers(){
       }
     }
     else if (StormLevel == 3){
-      for(int x = 0; x < LowerSewersLength){
+      for(int x = 0; x < LowerSewersLength; x++){
         strip.setPixelColor(WaterTreatmentStart + x,0,(StormIntensity * (SewerWaveHue[x-(Length*(x/Length))]/3) + 15), (20 + StormIntensity * 40));
-        if(x > DrainageLength - Runoff){strip.setPixelColor(OceanDumpStart - x,0,(StormIntensity * (SewerWaveHue[x-(Length*(x/Length))]/3) + 15), (20 + StormIntensity * 40));}
+        if(x < LowerSewersLength - DrainageLength){strip.setPixelColor(OceanDumpStart - x,0,(StormIntensity * (SewerWaveHue[x-(Length*(x/Length))]/3) + 15), (20 + StormIntensity * 40));}
 
         if(Runoff <= DrainageLength + Length){
           if(CurrentTime >= RunoffWait.LastTriggered + RunoffWait.Duration){
@@ -643,11 +643,11 @@ void Poo(){
     if(PipeOne.Poo >= PipeOne.End && PipeOne.PooPath == false){
       if(PooOne.active != true){
         PooOne.Start[0] = UpperSewerEnd - PipeOneSewer;
-        PooOne.Start[1] = (LowerSewersStart + LowerSewersLength);
-        PooOne.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooOne.Start[1] = OceanDumpStart;
+        PooOne.Start[2] = WaterTreatmentEnd - DrainageLength;
         PooOne.End[0] = UpperSewerEnd - LengthOfUpperSewer;
-        PooOne.End[1] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator)+1);
-        PooOne.End[2] = LowerSewersStart;
+        PooOne.End[1] = OceanDumpEnd + DrainageLength +1;
+        PooOne.End[2] = WaterTreatmentEnd;
 
         PooOne.Poo[0]=PooOne.Start[0];
         PooOne.active = true;
@@ -655,11 +655,11 @@ void Poo(){
       }
       else if(PooTwo.active != true){
         PooTwo.Start[0] = UpperSewerEnd - PipeOneSewer;
-        PooTwo.Start[1] = (LowerSewersStart + LowerSewersLength);
-        PooTwo.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooTwo.Start[1] = OceanDumpStart;
+        PooTwo.Start[2] = WaterTreatmentEnd - DrainageLength;
         PooTwo.End[0] = UpperSewerEnd - LengthOfUpperSewer;
-        PooTwo.End[1] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator)+1);
-        PooTwo.End[2] = LowerSewersStart;
+        PooTwo.End[1] = OceanDumpEnd + DrainageLength +1;
+        PooTwo.End[2] = WaterTreatmentEnd;
 
         PooTwo.Poo[0]=PooTwo.Start[0];
         PooTwo.active = true;
@@ -667,11 +667,11 @@ void Poo(){
       }
       else if(PooThree.active != true){
         PooThree.Start[0] = UpperSewerEnd - PipeOneSewer;
-        PooThree.Start[1] = (LowerSewersStart + LowerSewersLength);
-        PooThree.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooThree.Start[1] = OceanDumpStart;
+        PooThree.Start[2] = WaterTreatmentEnd - DrainageLength;
         PooThree.End[0] = UpperSewerEnd - LengthOfUpperSewer;
-        PooThree.End[1] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator)+1);
-        PooThree.End[2] = LowerSewersStart;
+        PooThree.End[1] = OceanDumpEnd + DrainageLength +1;
+        PooThree.End[2] = WaterTreatmentEnd;
 
         PooThree.Poo[0]=PooThree.Start[0];
         PooThree.active = true;
@@ -679,11 +679,11 @@ void Poo(){
       }
       else if(PooFour.active != true){
         PooFour.Start[0] = UpperSewerEnd - PipeOneSewer;
-        PooFour.Start[1] = (LowerSewersStart + LowerSewersLength);
-        PooFour.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooFour.Start[1] = OceanDumpStart;
+        PooFour.Start[2] = WaterTreatmentEnd - DrainageLength;
         PooFour.End[0] = UpperSewerEnd - LengthOfUpperSewer;
-        PooFour.End[1] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator)+1);
-        PooFour.End[2] = LowerSewersStart;
+        PooFour.End[1] = OceanDumpEnd + DrainageLength +1;
+        PooFour.End[2] = WaterTreatmentEnd;
 
         PooFour.Poo[0]=PooFour.Start[0];
         PooFour.active = true;
@@ -694,11 +694,11 @@ void Poo(){
     if(PipeTwo.Poo >= PipeTwo.End && PipeTwo.PooPath == false){
       if(PooOne.active != true){
         PooOne.Start[0] = UpperSewerEnd - PipeTwoSewer;
-        PooOne.Start[1] = (LowerSewersStart + LowerSewersLength);
-        PooOne.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooOne.Start[1] = OceanDumpStart;
+        PooOne.Start[2] = WaterTreatmentEnd - DrainageLength;
         PooOne.End[0] = UpperSewerEnd - LengthOfUpperSewer;
-        PooOne.End[1] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator)+1);
-        PooOne.End[2] = LowerSewersStart;
+        PooOne.End[1] = OceanDumpEnd + DrainageLength +1;
+        PooOne.End[2] = WaterTreatmentEnd;
 
         PooOne.Poo[0]=PooOne.Start[0];
         PooOne.active = true;
@@ -706,11 +706,11 @@ void Poo(){
       }
       else if(PooTwo.active != true){
         PooTwo.Start[0] = UpperSewerEnd - PipeTwoSewer;
-        PooTwo.Start[1] = (LowerSewersStart + LowerSewersLength);
-        PooTwo.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooTwo.Start[1] = OceanDumpStart;
+        PooTwo.Start[2] = WaterTreatmentEnd - DrainageLength;
         PooTwo.End[0] = UpperSewerEnd - LengthOfUpperSewer;
-        PooTwo.End[1] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator)+1);
-        PooTwo.End[2] = LowerSewersStart;
+        PooTwo.End[1] = OceanDumpEnd + DrainageLength +1;
+        PooTwo.End[2] = WaterTreatmentEnd;
 
         PooTwo.Poo[0]=PooTwo.Start[0];
         PooTwo.active = true;
@@ -718,11 +718,11 @@ void Poo(){
       }
       else if(PooThree.active != true){
         PooThree.Start[0] = UpperSewerEnd - PipeTwoSewer;
-        PooThree.Start[1] = (LowerSewersStart + LowerSewersLength);
-        PooThree.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooThree.Start[1] = OceanDumpStart;
+        PooThree.Start[2] = WaterTreatmentEnd - DrainageLength;
         PooThree.End[0] = UpperSewerEnd - LengthOfUpperSewer;
-        PooThree.End[1] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator)+1);
-        PooThree.End[2] = LowerSewersStart;
+        PooThree.End[1] = OceanDumpEnd + DrainageLength +1;
+        PooThree.End[2] = WaterTreatmentEnd;
 
         PooThree.Poo[0]=PooThree.Start[0];
         PooThree.active = true;
@@ -730,11 +730,11 @@ void Poo(){
       }
       else if(PooFour.active != true){
         PooFour.Start[0] = UpperSewerEnd - PipeTwoSewer;
-        PooFour.Start[1] = (LowerSewersStart + LowerSewersLength);
-        PooFour.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooFour.Start[1] = OceanDumpStart;
+        PooFour.Start[2] = WaterTreatmentEnd - DrainageLength;
         PooFour.End[0] = UpperSewerEnd - LengthOfUpperSewer;
-        PooFour.End[1] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator)+1);
-        PooFour.End[2] = LowerSewersStart;
+        PooFour.End[1] = OceanDumpEnd + DrainageLength +1;
+        PooFour.End[2] = WaterTreatmentEnd;
 
         PooFour.Poo[0]=PooFour.Start[0];
         PooFour.active = true;
@@ -745,11 +745,11 @@ void Poo(){
     if(PipeThree.Poo >= PipeThree.End && PipeThree.PooPath == false){
       if(PooOne.active != true){
         PooOne.Start[0] = UpperSewerStart + PipeThreeSewer;
-        PooOne.Start[1] = (LowerSewersEnd - LowerSewersLength);
-        PooOne.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooOne.Start[1] = WaterTreatmentStart;
+        PooOne.Start[2] = WaterTreatmentEnd - DrainageLength;
         PooOne.End[0] = UpperSewerStart + LengthOfUpperSewer;
-        PooOne.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator));
-        PooOne.End[2] = LowerSewersStart;
+        PooOne.End[1] = WaterTreatmentEnd - DrainageLength - 1;
+        PooOne.End[2] = WaterTreatmentEnd;
 
         PooOne.Poo[0]=PooOne.Start[0];
         PooOne.active = true;
@@ -757,11 +757,11 @@ void Poo(){
       }
       else if(PooTwo.active != true){
         PooTwo.Start[0] = UpperSewerStart + PipeThreeSewer;
-        PooTwo.Start[1] = (LowerSewersEnd - LowerSewersLength);
-        PooTwo.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooTwo.Start[1] = WaterTreatmentStart;
+        PooTwo.Start[2] = WaterTreatmentEnd - DrainageLength;
         PooTwo.End[0] = UpperSewerStart + LengthOfUpperSewer;
-        PooTwo.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator));
-        PooTwo.End[2] = LowerSewersStart;
+        PooTwo.End[1] = WaterTreatmentEnd - DrainageLength - 1;
+        PooTwo.End[2] = WaterTreatmentEnd;
 
         PooTwo.Poo[0]=PooTwo.Start[0];
         PooTwo.active = true;
@@ -769,11 +769,11 @@ void Poo(){
       }
       else if(PooThree.active != true){
         PooThree.Start[0] = UpperSewerStart + PipeThreeSewer;
-        PooThree.Start[1] = (LowerSewersEnd - LowerSewersLength);
-        PooThree.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooThree.Start[1] = WaterTreatmentStart;
+        PooThree.Start[2] = WaterTreatmentEnd - DrainageLength;
         PooThree.End[0] = UpperSewerStart + LengthOfUpperSewer;
-        PooThree.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator));
-        PooThree.End[2] = LowerSewersStart;
+        PooThree.End[1] = WaterTreatmentEnd - DrainageLength - 1;
+        PooThree.End[2] = WaterTreatmentEnd;
 
         PooThree.Poo[0]=PooThree.Start[0];
         PooThree.active = true;
@@ -781,11 +781,11 @@ void Poo(){
       }
       else if(PooFour.active != true){
         PooFour.Start[0] = UpperSewerStart + PipeThreeSewer;
-        PooFour.Start[1] = (LowerSewersEnd - LowerSewersLength);
-        PooFour.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooFour.Start[1] = WaterTreatmentStart;
+        PooFour.Start[2] = WaterTreatmentEnd - DrainageLength;
         PooFour.End[0] = UpperSewerStart + LengthOfUpperSewer;
-        PooFour.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator));
-        PooFour.End[2] = LowerSewersStart;
+        PooFour.End[1] = WaterTreatmentEnd - DrainageLength - 1;
+        PooFour.End[2] = WaterTreatmentEnd;
 
         PooFour.Poo[0]=PooFour.Start[0];
         PooFour.active = true;
@@ -796,11 +796,11 @@ void Poo(){
     if(PipeFour.Poo >= PipeFour.End && PipeFour.PooPath == false){
       if(PooOne.active != true){
         PooOne.Start[0] = UpperSewerStart + PipeFourSewer;
-        PooOne.Start[1] = (LowerSewersEnd - LowerSewersLength);
-        PooOne.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooOne.Start[1] = WaterTreatmentStart;
+        PooOne.Start[2] = WaterTreatmentEnd - DrainageLength;
         PooOne.End[0] = UpperSewerStart + LengthOfUpperSewer;
-        PooOne.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator));
-        PooOne.End[2] = LowerSewersStart;
+        PooOne.End[1] = WaterTreatmentEnd - DrainageLength - 1;
+        PooOne.End[2] = WaterTreatmentEnd;
 
         PooOne.Poo[0]=PooOne.Start[0];
         PooOne.active = true;
@@ -808,11 +808,11 @@ void Poo(){
       }
       else if(PooTwo.active != true){
         PooTwo.Start[0] = UpperSewerStart + PipeFourSewer;
-        PooTwo.Start[1] = (LowerSewersEnd - LowerSewersLength);
-        PooTwo.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooTwo.Start[1] = WaterTreatmentStart;
+        PooTwo.Start[2] = WaterTreatmentEnd - DrainageLength;
         PooTwo.End[0] = UpperSewerStart + LengthOfUpperSewer;
-        PooTwo.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator));
-        PooTwo.End[2] = LowerSewersStart;
+        PooTwo.End[1] = WaterTreatmentEnd - DrainageLength - 1;
+        PooTwo.End[2] = WaterTreatmentEnd;
 
         PooTwo.Poo[0]=PooTwo.Start[0];
         PooTwo.active = true;
@@ -820,11 +820,11 @@ void Poo(){
       }
       else if(PooThree.active != true){
         PooThree.Start[0] = UpperSewerStart + PipeFourSewer;
-        PooThree.Start[1] = (LowerSewersEnd - LowerSewersLength);
-        PooThree.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooThree.Start[1] = WaterTreatmentStart;
+        PooThree.Start[2] = WaterTreatmentEnd - DrainageLength;
         PooThree.End[0] = UpperSewerStart + LengthOfUpperSewer;
-        PooThree.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator));
-        PooThree.End[2] = LowerSewersStart;
+        PooThree.End[1] = WaterTreatmentEnd - DrainageLength - 1;
+        PooThree.End[2] = WaterTreatmentEnd;
 
         PooThree.Poo[0]=PooThree.Start[0];
         PooThree.active = true;
@@ -832,11 +832,11 @@ void Poo(){
       }
       else if(PooFour.active != true){
         PooFour.Start[0] = UpperSewerStart + PipeFourSewer;
-        PooFour.Start[1] = (LowerSewersEnd - LowerSewersLength);
-        PooFour.Start[2] = (LowerSewersStart+(LowerSewersLength - DrainageRegulator));
+        PooFour.Start[1] = WaterTreatmentStart;
+        PooFour.Start[2] = WaterTreatmentEnd - DrainageLength;
         PooFour.End[0] = UpperSewerStart + LengthOfUpperSewer;
-        PooFour.End[1] = (LowerSewersEnd-(LowerSewersLength - DrainageRegulator));
-        PooFour.End[2] = LowerSewersStart;
+        PooFour.End[1] = WaterTreatmentEnd - DrainageLength - 1;
+        PooFour.End[2] = WaterTreatmentEnd;
 
         PooFour.Poo[0]=PooFour.Start[0];
         PooFour.active = true;
@@ -866,8 +866,8 @@ void PooOneTravel() {
     for(int x = StreakLength; x > 0; x--){PooOne.Poo[x] = PooOne.Poo[x-1];}
 
     if(StormLevel ==3 && (PooOne.Poo[0] == PooOne.End[1] +1 || PooOne.Poo[0] == PooOne.End[1] -1)){
-      PooOne.Start[2] = (LowerSewersEnd -(LowerSewersLength - DrainageRegulator));
-      PooOne.End[2] = LowerSewersEnd;
+      PooOne.Start[2] = OceanDumpEnd + DrainageLength;
+      PooOne.End[2] = OceanDumpEnd;
     }
     
 
@@ -909,8 +909,8 @@ void PooTwoTravel() {
     for(int x = StreakLength; x > 0; x--){PooTwo.Poo[x] = PooTwo.Poo[x-1];}
 
     if(StormLevel ==3 && (PooTwo.Poo[0] == PooTwo.End[1] +1 || PooTwo.Poo[0] == PooTwo.End[1] -1)){
-      PooTwo.Start[2] = (LowerSewersEnd -(LowerSewersLength - DrainageRegulator));
-      PooTwo.End[2] = LowerSewersEnd;
+      PooTwo.Start[2] = OceanDumpEnd + DrainageLength;
+      PooTwo.End[2] = OceanDumpEnd;
     }
     
     if(PooTwo.Start[PooTwo.CurrentPath +1] != 0){
@@ -951,8 +951,8 @@ void PooThreeTravel() {
     for(int x = StreakLength; x > 0; x--){PooThree.Poo[x] = PooThree.Poo[x-1];}
 
     if(StormLevel ==3 && (PooThree.Poo[0] == PooThree.End[1] +1 || PooThree.Poo[0] == PooThree.End[1] -1)){
-      PooThree.Start[2] = (LowerSewersEnd -(LowerSewersLength - DrainageRegulator));
-      PooThree.End[2] = LowerSewersEnd;
+      PooThree.Start[2] = OceanDumpEnd + DrainageLength;
+      PooThree.End[2] = OceanDumpEnd;
     }
     
 
@@ -994,8 +994,8 @@ void PooFourTravel() {
     for(int x = StreakLength; x > 0; x--){PooFour.Poo[x] = PooFour.Poo[x-1];}
 
     if(StormLevel ==3 && (PooFour.Poo[0] == PooFour.End[1] +1 || PooFour.Poo[0] == PooFour.End[1] -1)){
-      PooFour.Start[2] = (LowerSewersEnd -(LowerSewersLength - DrainageRegulator));
-      PooFour.End[2] = LowerSewersEnd;
+      PooFour.Start[2] = OceanDumpEnd + DrainageLength;
+      PooFour.End[2] = OceanDumpEnd;
     }
     
     if(PooFour.Start[PooFour.CurrentPath +1] != 0){
@@ -1030,13 +1030,13 @@ void PooFourTravel() {
 void loop() {
   CurrentTime = millis();
   Rain();
-  Toilet();
-  BathTub();
-  Shower();
-  Sink();
-  UpperSewers();
+  //Toilet();
+  //BathTub();
+  //Shower();
+  //Sink();
+  //UpperSewers();
   LowerSewers();
-  Poo();
+  //Poo();
 
   if(CurrentTime  >= RainFrame.Duration + RainFrame.LastTriggered){
     RainGutters();
