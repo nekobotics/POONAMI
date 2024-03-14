@@ -76,12 +76,14 @@ Time PipeFourPooWait = PipeOnePooWait;
 Time RainFrame = {0,10};
 Time RainWait = {0,500};
 Time SewersFrame = {0,10};
-Time RunoffWait = {0,6};
+Time RunoffWait = {0,4};
 Time ProjectedSpeed = {0,10};
 Time GutterSpeedWait = RainWait;
 Time SewersSpeedWait = RainWait;
 Time RainHold = {0,1000};
 Time PooOneSpeed = {0,11};
+Time GreenWaveHoldTime = {0,100};
+Time BlueWaveHoldTime = {0,400};
 
 // struct GutterPixel{
 //   int Start;
@@ -117,6 +119,8 @@ Time PooOneSpeed = {0,11};
 const int Length = 20;
 
 int WaveHue[Length];
+int BlueSewerWaveHue[Length];
+int GreenSewerWaveHue[Length];
 int SewerWaveHue[Length];
 int GutterHue[Length];
 int ColorHue[Length];
@@ -124,6 +128,8 @@ int RunoffHue[Length];
 int StreakHue[StreakLength];
 int LastPixel;
 int SewersLastPixel;
+int BlueSewersLastPixel;
+int GreenSewersLastPixel;
 int LastGutterPixel;
 
 struct PooDrop{
@@ -139,16 +145,15 @@ PooDrop PooOne = {false,0,{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},0};
 PooDrop PooTwo = {false,0,{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},0};
 PooDrop PooThree = {false,0,{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},0};
 PooDrop PooFour = {false,0,{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},0};
-PooDrop PooFive = {false,0,{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},0};
-PooDrop PooSix = {false,0,{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},0};
-PooDrop PooSeven = {false,0,{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},0};
-PooDrop PooEight = {false,0,{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},0};
 
 int GutterPixel = 0;
 int GutterLag = 0;
 
 unsigned long CurrentTime;
 bool RainOn = false;
+
+bool CurrentShiftRise = true;
+int CurrentShift = 0;
 
 Adafruit_NeoPixel strip(Num_Pixels, Pixel_Pin, NEO_GRBW + NEO_KHZ800);
 
@@ -159,6 +164,8 @@ void WaveUpdate(){
     ColorHue[x]= (200/2)+((200/2) * cos(x * (3.14/Length)));
     RunoffHue[x]= (200/2)+((200/2) * sin(x *(1.57/Length)-1.57));
     WaveHue[x]= (200/2)-((200/2) * sin(x * (3.14/Length)));
+    GreenSewerWaveHue[x]= (10/2)-((10/2) * sin(x * (3.14/Length)));
+    BlueSewerWaveHue[x]= (20/2)-((20/2) * sin(x * (3.14/Length)));
     SewerWaveHue[x]= (200/2)-((200/2) * sin(x * (3.14/Length)));
     GutterHue[x]= (40/2)+((40/2)*cos(x*(6.26/Length)));
   }
@@ -551,8 +558,24 @@ void RainGutters(){
 void UpperSewers(){
   if(CurrentTime >= SewersFrame.LastTriggered + SewersFrame.Duration){
     for(int x = 0; x < LengthOfUpperSewer; x++){
-      strip.setPixelColor(x+UpperSewerStart,0,(StormLevel+1)*(SewerWaveHue[x-(Length*(x/Length))]/3)+15,20+(StormLevel*40));
-      strip.setPixelColor(UpperSewerEnd-x,0,(StormLevel+1)*(SewerWaveHue[x-(Length*(x/Length))]/3)+15,20+(StormLevel*40));
+      if (StormLevel == 0){
+        strip.setPixelColor(x+UpperSewerStart,0,0,(2+BlueSewerWaveHue[x-(Length*(x/Length))]) * 10);
+        strip.setPixelColor(UpperSewerEnd-x,0,0,(2+BlueSewerWaveHue[x-(Length*(x/Length))]) * 10);
+      }
+      else if(StormLevel == 1){
+        strip.setPixelColor(x+UpperSewerStart,0,(GreenSewerWaveHue[x-(Length*(x/Length))]+1) * (CurrentShift/3),(2+BlueSewerWaveHue[x-(Length*(x/Length))]) * (10-CurrentShift)/3);
+        strip.setPixelColor(UpperSewerEnd-x,0,(GreenSewerWaveHue[x-(Length*(x/Length))]+1) * (CurrentShift/3),(2+BlueSewerWaveHue[x-(Length*(x/Length))]) * (10-CurrentShift)/3);
+      }
+      else if (StormLevel == 2){
+        strip.setPixelColor(x+UpperSewerStart,0,(GreenSewerWaveHue[x-(Length*(x/Length))]+1) * (CurrentShift/2),(2+BlueSewerWaveHue[x-(Length*(x/Length))]) * (10-CurrentShift)/2);
+        strip.setPixelColor(UpperSewerEnd-x,0,(GreenSewerWaveHue[x-(Length*(x/Length))]+1) * (CurrentShift/2),(2+BlueSewerWaveHue[x-(Length*(x/Length))]) * (10-CurrentShift)/2);
+      }
+      else if (StormLevel == 3){
+        strip.setPixelColor(x+UpperSewerStart,0,(GreenSewerWaveHue[x-(Length*(x/Length))]+1) * (CurrentShift),(2+BlueSewerWaveHue[x-(Length*(x/Length))]) * (10-CurrentShift)/2);
+        strip.setPixelColor(UpperSewerEnd-x,0,(GreenSewerWaveHue[x-(Length*(x/Length))]+1) * (CurrentShift),(2+BlueSewerWaveHue[x-(Length*(x/Length))]) * (10-CurrentShift)/2);
+      }
+      // strip.setPixelColor(x+UpperSewerStart,0,(StormLevel+1)*(SewerWaveHue[x-(Length*(x/Length))]/3)+15,20+(StormLevel*40));
+      // strip.setPixelColor(UpperSewerEnd-x,0,(StormLevel+1)*(SewerWaveHue[x-(Length*(x/Length))]/3)+15,20+(StormLevel*40));
     }
   }
 }
@@ -597,7 +620,6 @@ void LowerSewers(){
       }
     }
   }
-
 
  return;
 
@@ -1037,8 +1059,8 @@ void loop() {
   //BathTub();
   //Shower();
   //Sink();
-  //UpperSewers();
-  LowerSewers();
+  UpperSewers();
+  //LowerSewers();
   //Poo();
 
   if(CurrentTime  >= RainFrame.Duration + RainFrame.LastTriggered){
@@ -1048,10 +1070,33 @@ void loop() {
 
   if(CurrentTime  >= SewersFrame.Duration + SewersFrame.LastTriggered){
     SewersLastPixel = SewerWaveHue[Length-1];
+    BlueSewersLastPixel = BlueSewerWaveHue[Length-1];
+    GreenSewersLastPixel = GreenSewerWaveHue[Length-1];
     for(int x = Length; x >= 0; x--){
-      if(x!=0){SewerWaveHue[x]=SewerWaveHue[x-1];} 
-      else {SewerWaveHue[x]=SewersLastPixel;}
+      if(x!=0){
+        SewerWaveHue[x]=SewerWaveHue[x-1];
+        BlueSewerWaveHue[x]=GreenSewerWaveHue[x-1];
+        GreenSewerWaveHue[x]=GreenSewerWaveHue[x-1];
+      } 
+      else {
+        SewerWaveHue[x]=SewersLastPixel;
+        BlueSewerWaveHue[x]=BlueSewersLastPixel;
+        GreenSewerWaveHue[x]=GreenSewersLastPixel;
+      }
     }
+
+    if(CurrentTime >= BlueWaveHoldTime.LastTriggered + BlueWaveHoldTime.Duration && CurrentTime >= GreenWaveHoldTime.LastTriggered + GreenWaveHoldTime.Duration){
+        if(CurrentShift < 10 && CurrentShiftRise == true){CurrentShift++;}
+        else if (CurrentShift == 10 && CurrentShiftRise == true){
+          GreenWaveHoldTime.LastTriggered = CurrentTime;
+          CurrentShiftRise = false;
+        }
+        else if (CurrentShift > 1 && CurrentShiftRise == false){CurrentShift--;}
+        else if(CurrentShift == 1 && CurrentShiftRise == false){
+          BlueWaveHoldTime.LastTriggered = CurrentTime;
+          CurrentShiftRise = true;
+        }
+      }
 
     SewersFrame.LastTriggered = CurrentTime;
   }
