@@ -82,7 +82,7 @@ Time GutterSpeedWait = RainWait;
 Time SewersSpeedWait = RainWait;
 Time RainHold = {0,1000};
 Time PooOneSpeed = {0,11};
-Time GreenWaveHoldTime = {0,100};
+Time GreenWaveHoldTime = {0,200};
 Time BlueWaveHoldTime = {0,400};
 
 // struct GutterPixel{
@@ -116,7 +116,7 @@ Time BlueWaveHoldTime = {0,400};
   const int OceanDumpStart = LowerSewersStart + LowerSewersLength;
   const int OceanDumpEnd = LowerSewersStart;
 
-const int Length = 20;
+const int Length = 40;
 
 int WaveHue[Length];
 int BlueSewerWaveHue[Length];
@@ -556,32 +556,43 @@ void RainGutters(){
 }
 
 void UpperSewers(){
-  if(CurrentTime >= SewersFrame.LastTriggered + SewersFrame.Duration){
-    for(int x = 0; x < LengthOfUpperSewer; x++){
-      if (StormLevel == 0){
-        strip.setPixelColor(x+UpperSewerStart,0,0,(2+BlueSewerWaveHue[x-(Length*(x/Length))]) * 10);
-        strip.setPixelColor(UpperSewerEnd-x,0,0,(2+BlueSewerWaveHue[x-(Length*(x/Length))]) * 10);
-      }
-      else if(StormLevel == 1){
-        strip.setPixelColor(x+UpperSewerStart,0,(GreenSewerWaveHue[x-(Length*(x/Length))]+1) * (CurrentShift/3),(2+BlueSewerWaveHue[x-(Length*(x/Length))]) * (10-CurrentShift)/3);
-        strip.setPixelColor(UpperSewerEnd-x,0,(GreenSewerWaveHue[x-(Length*(x/Length))]+1) * (CurrentShift/3),(2+BlueSewerWaveHue[x-(Length*(x/Length))]) * (10-CurrentShift)/3);
-      }
-      else if (StormLevel == 2){
-        strip.setPixelColor(x+UpperSewerStart,0,(GreenSewerWaveHue[x-(Length*(x/Length))]+1) * (CurrentShift/2),(2+BlueSewerWaveHue[x-(Length*(x/Length))]) * (10-CurrentShift)/2);
-        strip.setPixelColor(UpperSewerEnd-x,0,(GreenSewerWaveHue[x-(Length*(x/Length))]+1) * (CurrentShift/2),(2+BlueSewerWaveHue[x-(Length*(x/Length))]) * (10-CurrentShift)/2);
-      }
-      else if (StormLevel == 3){
-        strip.setPixelColor(x+UpperSewerStart,0,(GreenSewerWaveHue[x-(Length*(x/Length))]+1) * (CurrentShift),(2+BlueSewerWaveHue[x-(Length*(x/Length))]) * (10-CurrentShift)/2);
-        strip.setPixelColor(UpperSewerEnd-x,0,(GreenSewerWaveHue[x-(Length*(x/Length))]+1) * (CurrentShift),(2+BlueSewerWaveHue[x-(Length*(x/Length))]) * (10-CurrentShift)/2);
-      }
-      // strip.setPixelColor(x+UpperSewerStart,0,(StormLevel+1)*(SewerWaveHue[x-(Length*(x/Length))]/3)+15,20+(StormLevel*40));
-      // strip.setPixelColor(UpperSewerEnd-x,0,(StormLevel+1)*(SewerWaveHue[x-(Length*(x/Length))]/3)+15,20+(StormLevel*40));
+  for(int x = 0; x < LengthOfUpperSewer; x++){
+    if (StormLevel == 0){
+      strip.setPixelColor(x+UpperSewerStart,0,0,(1+BlueSewerWaveHue[x-(Length*(x/Length))]) * 10);
+      strip.setPixelColor(UpperSewerEnd-x,0,0,(1+BlueSewerWaveHue[x-(Length*(x/Length))]) * 10);
     }
+    else if(StormLevel == 1){
+      strip.setPixelColor(x+UpperSewerStart,0,(GreenSewerWaveHue[x-(Length*(x/Length))]+1) * (CurrentShift/3),(1+BlueSewerWaveHue[x-(Length*(x/Length))]) * (10-(CurrentShift/3)));
+      strip.setPixelColor(UpperSewerEnd-x,0,(GreenSewerWaveHue[x-(Length*(x/Length))]+1) * (CurrentShift/3),(1+BlueSewerWaveHue[x-(Length*(x/Length))]) * (10-(CurrentShift/3)));
+    }
+    else if (StormLevel == 2){
+      strip.setPixelColor(x+UpperSewerStart,0,(GreenSewerWaveHue[x-(Length*(x/Length))]+1) * (CurrentShift/2),(1+BlueSewerWaveHue[x-(Length*(x/Length))]) * (10-(CurrentShift/2)));
+      strip.setPixelColor(UpperSewerEnd-x,0,(GreenSewerWaveHue[x-(Length*(x/Length))]+1) * (CurrentShift/2),(1+BlueSewerWaveHue[x-(Length*(x/Length))]) * (10-(CurrentShift/2)));
+    }
+    else if (StormLevel == 3){
+      strip.setPixelColor(x+UpperSewerStart,0,(GreenSewerWaveHue[x-(Length*(x/Length))]+1) * (CurrentShift),(1+BlueSewerWaveHue[x-(Length*(x/Length))]) * (10-(CurrentShift/2)));
+      strip.setPixelColor(UpperSewerEnd-x,0,(GreenSewerWaveHue[x-(Length*(x/Length))]+1) * (CurrentShift),(1+BlueSewerWaveHue[x-(Length*(x/Length))]) * (10-(CurrentShift/2)));
+    }
+    // strip.setPixelColor(x+UpperSewerStart,0,(StormLevel+1)*(SewerWaveHue[x-(Length*(x/Length))]/3)+15,20+(StormLevel*40));
+    // strip.setPixelColor(UpperSewerEnd-x,0,(StormLevel+1)*(SewerWaveHue[x-(Length*(x/Length))]/3)+15,20+(StormLevel*40));
+    //Serial.println(CurrentShift);
   }
+      if(CurrentTime >= BlueWaveHoldTime.LastTriggered + BlueWaveHoldTime.Duration && CurrentTime >= GreenWaveHoldTime.LastTriggered + GreenWaveHoldTime.Duration){
+        if(CurrentShift < 10 && CurrentShiftRise == true){CurrentShift++;}
+        else if (CurrentShift >= 10 && CurrentShiftRise == true){
+          GreenWaveHoldTime.LastTriggered = CurrentTime;
+          CurrentShiftRise = false;
+        }
+        else if (CurrentShift > 1 && CurrentShiftRise == false){CurrentShift--;}
+        else if(CurrentShift <= 1 && CurrentShiftRise == false){
+          BlueWaveHoldTime.LastTriggered = CurrentTime;
+          CurrentShiftRise = true;
+        }
+      }
 }
 
 void LowerSewers(){
-  if(CurrentTime >= SewersFrame.Duration+SewersFrame.LastTriggered){
+  
     if(StormLevel < 3){
       for(int x = 0; x < LowerSewersLength;x++){
         strip.setPixelColor(WaterTreatmentStart + x,0,(StormIntensity * (SewerWaveHue[x-(Length*(x/Length))]/3) + 15), (20 + StormIntensity * 40));
@@ -619,7 +630,6 @@ void LowerSewers(){
         RunoffWait.LastTriggered = CurrentTime;
       }
     }
-  }
 
  return;
 
@@ -1055,12 +1065,6 @@ void PooFourTravel() {
 void loop() {
   CurrentTime = millis();
   Rain();
-  //Toilet();
-  //BathTub();
-  //Shower();
-  //Sink();
-  UpperSewers();
-  //LowerSewers();
   //Poo();
 
   if(CurrentTime  >= RainFrame.Duration + RainFrame.LastTriggered){
@@ -1069,13 +1073,17 @@ void loop() {
   }
 
   if(CurrentTime  >= SewersFrame.Duration + SewersFrame.LastTriggered){
+    UpperSewers();
+    //LowerSewers();
+
     SewersLastPixel = SewerWaveHue[Length-1];
     BlueSewersLastPixel = BlueSewerWaveHue[Length-1];
     GreenSewersLastPixel = GreenSewerWaveHue[Length-1];
+
     for(int x = Length; x >= 0; x--){
       if(x!=0){
         SewerWaveHue[x]=SewerWaveHue[x-1];
-        BlueSewerWaveHue[x]=GreenSewerWaveHue[x-1];
+        BlueSewerWaveHue[x]=BlueSewerWaveHue[x-1];
         GreenSewerWaveHue[x]=GreenSewerWaveHue[x-1];
       } 
       else {
@@ -1085,23 +1093,17 @@ void loop() {
       }
     }
 
-    if(CurrentTime >= BlueWaveHoldTime.LastTriggered + BlueWaveHoldTime.Duration && CurrentTime >= GreenWaveHoldTime.LastTriggered + GreenWaveHoldTime.Duration){
-        if(CurrentShift < 10 && CurrentShiftRise == true){CurrentShift++;}
-        else if (CurrentShift == 10 && CurrentShiftRise == true){
-          GreenWaveHoldTime.LastTriggered = CurrentTime;
-          CurrentShiftRise = false;
-        }
-        else if (CurrentShift > 1 && CurrentShiftRise == false){CurrentShift--;}
-        else if(CurrentShift == 1 && CurrentShiftRise == false){
-          BlueWaveHoldTime.LastTriggered = CurrentTime;
-          CurrentShiftRise = true;
-        }
-      }
+
 
     SewersFrame.LastTriggered = CurrentTime;
   }
 
   if(CurrentTime  >= PipesFrame.Duration + PipesFrame.LastTriggered){
+    //Toilet();
+    //BathTub();
+    //Shower();
+    //Sink();
+
     LastPixel = WaveHue[Length-1];
     for(int x = Length; x >= 0; x--){
       if(x!=0){WaveHue[x]=WaveHue[x-1];} 
