@@ -30,6 +30,7 @@
 int Runoff = 0;
 int RunoffLead = 0;
 bool RunoffDrain = false;
+float RunoffFade = 0;
 
 bool allActive = false;
 
@@ -201,8 +202,8 @@ void WaveUpdate(){
     SewerWaveHue[x]= (200/2)-((200/2) * sin(x * (3.14/Length)));
     GutterHue[x]= (40/2)+((40/2)*cos(x*(6.26/Length)));
 
-    RunoffLeadHue.BlueHue[x] = (20/2)-((20/2) * cos(x * ((3.14/2)/Length)));
-    RunoffLeadHue.GreenHue[x] = (10/2)-((10/2) * cos(x * ((3.14/2)/Length)));
+    RunoffLeadHue.BlueHue[x] = (20/2)+((20/2) * cos(x * ((3.14/2)/Length)));
+    RunoffLeadHue.GreenHue[x] = (10/2)+((10/2) * cos(x * ((3.14/2)/Length)));
   }
 
   for(int x=0; x < StreakLength; x++){
@@ -630,14 +631,19 @@ void LowerSewers(){
   if (StormLevel == 1){
     for(int x = 0; x < LowerSewersLength; x++){
       strip.setPixelColor(WaterTreatmentStart + x,0,(GreenSewerWaveHue[x-(Length*(x/Length))]+1) * (CurrentShift/3),(1+BlueSewerWaveHue[x-(Length*(x/Length))]) * (10-(CurrentShift/3)));      
-      if( x < LowerSewersCombine + Runoff){strip.setPixelColor(OceanDumpStart - x,0,(GreenSewerWaveHue[x-(Length*(x/Length))]+1) * (CurrentShift/3),(1+BlueSewerWaveHue[x-(Length*(x/Length))]) * (10-(CurrentShift/3)));}
+      if( x < LowerSewersCombine + Runoff){strip.setPixelColor(OceanDumpStart - x,0,RunoffFade*((GreenSewerWaveHue[x-(Length*(x/Length))]+1) * (CurrentShift/3)),RunoffFade*((1+BlueSewerWaveHue[x-(Length*(x/Length))]) * (10-(CurrentShift/3))));}
       else{strip.setPixelColor(OceanDumpStart - x,0,0,0);}
     }
 
-    if(RunoffLead > 0){
-      if(Runoff > 0){Runoff--};
-      for(int x = 0; x < abs(RunoffLead -Runoff); x++){strip.setPixelColor((OceanDumpStart-LowerSewersCombine) - Runoff - x),0,0,0);}
-      if((abs(Runofflead - Runoff) > 0 && Runoff = 0) || abs(RunoffLead - Runoff) > Length){RunoffLead--;}
+    if(RunoffLead > 0){ // fade away (See ya silverhand)
+      RunoffFade = (Runoff/(LowerSewersLength - DrainageLength - LowerSewersCombine));
+      if(Runoff > 0) {
+        Runoff--;
+        RunoffLead--;
+      }
+      // if(Runoff > 0){Runoff--};
+      // //for(int x = 0; x < abs(RunoffLead -Runoff); x++){strip.setPixelColor((OceanDumpStart-LowerSewersCombine) - Runoff - x),0,0,0);}
+      // if((abs(Runofflead - Runoff) > 0 && Runoff = 0) || abs(RunoffLead - Runoff) > Length){RunoffLead--;}
     };
   }
 
@@ -648,19 +654,29 @@ void LowerSewers(){
       else{strip.setPixelColor(OceanDumpStart - x,0,0,0);}
     }
 
-    if(RunoffLead > LowerSewersLength - DrainageLength - LowerSewersCombine){
-      if(Runoff > (LowerSewersLength-DrainageLength-LowerSewersCombine)){Runoff--};
-      for(int x = 0; x < abs(RunoffLead -Runoff); x++){strip.setPixelColor((OceanDumpStart-LowerSewersCombine) - Runoff - x),0,0,0);}
-      if((abs(Runofflead - Runoff) > 0 && Runoff = (LowerSewersLength-DrainageLength--LowerSewersCombine) || abs(Runofflead - Runoff) > Length){Runofflead--;}
+    if(RunoffLead > LowerSewersLength - DrainageLength - LowerSewersCombine && Runoff != RunoffLead){ // Trickle out to ocean
+      RunoffLead = LowerSewersLength - DrainageLength - LowerSewersCombine;
+      for(int x = 0; x < DrainageLength+Length; x++){
+        if(RunoffLead - x < 0){break;}
+        else if (Runoff - x <= DrainageLength){strip.setPixelColor((OceanDumpEnd - DrainageLength) - (Runoff - x),0,0,0);}
+      }
+      if(RunoffLead < LowerSewersLength + Length- LowerSewersCombine){RunoffLead++}
+      else {RunoffLead = Runoff;};
+
+      if(RunoffLeave > LowerSewersLength- LowerSewersCombine){Runoff = LowerSewersLength - DrainageLength - LowerSewersCombine;}
+
+      // if(Runoff > (LowerSewersLength-DrainageLength-LowerSewersCombine)){Runoff--};
+      // for(int x = 0; x < abs(RunoffLead -Runoff); x++){strip.setPixelColor((OceanDumpStart-LowerSewersCombine) - Runoff - x),0,0,0);}
+      // if((abs(Runofflead - Runoff) > 0 && Runoff = (LowerSewersLength-DrainageLength--LowerSewersCombine) || abs(Runofflead - Runoff) > Length){Runofflead--;}
     }
-    else if (Runoff < LowerSewersLength - DrainageLength - LowerSewersCombine){
+    else if (Runoff < LowerSewersLength - DrainageLength - LowerSewersCombine){ // Trickle out to DrainageRegulator
       if(RunoffLead < (LowerSewersLength-DrainageLength-LowerSewersCombine)){RunoffLead++};
       for(int x = 0; x < abs(RunoffLead -Runoff); x++){strip.setPixelColor((OceanDumpStart-LowerSewersCombine) - Runoff - x),0,(RunoffLeadHue.GreenHue[x] +1)*(CurrentShift/3),(RunoffLeadHue.BlueHue[x] +1)*(10-(CurrentShift/3));}
       if((abs(RunoffLead - Runoff) > 0 && RunoffLead = (LowerSewersLength-DrainageLength-LowerSewersCombine) || abs(RunoffLead - Runoff) > Length){Runoff++;}
     }
   }
 
-  else if (StormLevel == 3){
+  else if (StormLevel == 3){ //Flow out to Ocean
     for(int x = 0; x < LowerSewersLength; x++){
       strip.setPixelColor(WaterTreatmentStart + x,0,(GreenSewerWaveHue[x-(Length*(x/Length))]+1) * (CurrentShift/3),(1+BlueSewerWaveHue[x-(Length*(x/Length))]) * (10-(CurrentShift/3)));      
       if( x < LowerSewersCombine + Runoff){strip.setPixelColor(OceanDumpStart - x,0,(GreenSewerWaveHue[x-(Length*(x/Length))]+1) * (CurrentShift/3),(1+BlueSewerWaveHue[x-(Length*(x/Length))]) * (10-(CurrentShift/3)));}
