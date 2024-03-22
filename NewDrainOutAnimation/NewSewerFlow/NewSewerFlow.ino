@@ -33,9 +33,6 @@ bool RunoffDrain = false;
 float RunoffFade = 0;
 bool RunoffStart = false;
 
-bool GutterBegin = false;
-const int GutterLength = 3;
-
 unsigned long CurrentTime;
 struct Time {
   unsigned long LastTriggered;
@@ -45,15 +42,17 @@ struct Time {
 Time RainFrame = {0,10};
 Time RainWait = {0,500};
 Time SewersFrame = {0,10};
-Time RunoffWait = {0,4};
 Time ProjectedSpeed = {0,10};
-Time SewersSpeedWait = RainWait;
-Time RainHold = {0,5000};
-Time GreenWaveHoldTime = {0,200};
-Time BlueWaveHoldTime = {0,400};
-Time StageOneStorm = {0,1000};
+// Time GreenWaveHoldTime = {0,200};
+// Time BlueWaveHoldTime = {0,400};
+Time StageOneStorm = {0,2000};
 Time StageTwoStorm = {0,2000 + StageOneStorm.Duration};
-Time StageThreeStorm = {0,2000 + StageTwoStorm.Duration};
+Time StageThreeStorm = {0,4000 + StageTwoStorm.Duration};
+Time RainHold = {0,1000};
+
+const int GutterLength = 3;
+int GutterIntensity = 0;
+int GutterLead = GutterLength;
 
 const int UpperSewerStart = 70;
 const int UpperSewerEnd = 142;
@@ -63,7 +62,6 @@ const int LowerSewersStart = 143;
 const int LowerSewersEnd = Num_Pixels - 12;
 const int LowerSewersLength = 46;
 const int DrainageLength = 14;
-const int DrainageRegulator = LowerSewersStart + DrainageLength;
 const int WaterTreatmentStart = LowerSewersEnd - LowerSewersLength;
 const int WaterTreatmentEnd = LowerSewersEnd;
 const int OceanDumpStart = LowerSewersStart + LowerSewersLength;
@@ -71,20 +69,19 @@ const int OceanDumpEnd = LowerSewersStart;
 const int LowerSewerCombine = 16;
 const int WarningLength = 6;
 int WarningIntensity;
-bool WarningRise = true;
 bool StormStart = false;
 
 const int Length = 20;
+const int GutterHueLength = 6;
 
 bool RainOn = false;
 int StormLevel = 0;
 int ProjectedStormLevel = 0;
-int StormIntensity;
 bool RainPush = false;
 bool Raining = false;
 
-bool CurrentShiftRise = true;
-int CurrentShift = 0;
+// bool CurrentShiftRise = true;
+// int CurrentShift = 0;
 
 struct ShiftingColor {
   int RedHue[Length];
@@ -114,7 +111,9 @@ StaticColor RunoffLeadHueTest;
 const int StreakLength = 5;
 int StreakHue[StreakLength];
 
-int FlowOutIntensity = 0;
+double FlowOutIntensity = 0;
+//double FlowOutMultiplier[Length];
+//double LastFlowOutMultiplier;
 
 Adafruit_NeoPixel strip(Num_Pixels, Pixel_Pin, NEO_GRBW + NEO_KHZ800);
 
@@ -123,27 +122,36 @@ void WaveUpdate(){
     SewerWaveHue.GreenHue[x]= (100/2)-((100/2) * sin(x * (3.14/Length)));
     SewerWaveHue.BlueHue[x]= (200/2)-((200/2) * sin(x * (3.14/Length)));
 
-    RunoffLeadHue.BlueHue[x] = (20/2)+((20/2) * cos(x * ((3.14/2)/Length)));
-    RunoffLeadHue.GreenHue[x] = (15/2)+((15/2) * cos(x * ((3.14/2)/Length)));
+    RunoffLeadHue.BlueHue[x] = (200/2)+((200/2) * cos(x * (3.14/Length)));
+    RunoffLeadHue.GreenHue[x] = (100/2)+((100/2) * cos(x * (3.14/Length)));
 
-    FlowOutHue.WhiteHue[x] = (200/2)-((200/2) * cos(x*(3.14/Length)))); 
+    FlowOutHue.BlueHue[x] = (100)-(100 * sin(x * (3.14/Length)));
+    FlowOutHue.GreenHue[x] = (50)-(50 * sin(x * (3.14/Length)));
+    FlowOutHue.WhiteHue[x] = (20/2)-((20/2) * cos(x*(3.14/Length))); 
 
-    GutterHue.BlueHue[x]= (40/2)+((40/2)*cos(x*(6.26/Length)));
-    GutterHue.GreenHue[x]= (40/2)+((40/2)*cos(x*(6.26/Length)));
+    //Serial.println(FlowOutHue.WhiteHue[x]);
   }
+  FlowOutHue.WhiteHue[0]=0;
+  RunoffLeadHue.BlueHue[Length -1] = 0;
+  RunoffLeadHue.GreenHue[Length -1] = 0;
 
-  for(int x=0; x < StreakLength; x++){
-    StreakHue[x] = (200/2)+((200/2)*cos(x*(3.14/StreakLength)));
-  }
-  
+
 }
 
-void FlowOutUpdate(){
-  for(int x = 0; x < Length; x++){
-    FlowOutHue.BlueHue = (FlowOutIntensity/2)-((FlowOutIntensity/2) * sin(x * (3.14/Length)));
-    FlowOutHue.GreenHue = ((2*FlowOutIntensity)/2)-(((2*FlowOutInensity)/2) * sin(x * (3.14/Length)));
+void GutterFlowUpdate(int Intensity, int BlueBrightness, int GreenBrightness){
+  for(int x = 0; x < GutterHueLength; x++){
+    GutterHue.BlueHue[x]= (BlueBrightness/2)+((BlueBrightness/2)*cos(x*(((3.14 * Intensity))/GutterHueLength)));
+    GutterHue.GreenHue[x]= (GreenBrightness/2)+((GreenBrightness/2)*cos(x*((3.14 * Intensity)/GutterHueLength)));
   }
 }
+
+// void FlowOutUpdate(){ // Not used atm
+//   for(int x = 0; x< Length; x++){
+//     FlowOutMultiplier[x] = (FlowOutIntensity - (FlowOutIntensity * sin(x * (3.14/Length))));
+//   }
+//   if(FlowOutIntensity < .5 && CurrentTime <= StageOneStorm.Duration + StageOneStorm.LastTriggered){FlowOutIntensity = FlowOutIntensity + 0.1;}
+//   else if (FlowOutIntensity > 0 && CurrentTime >= StageOneStorm.Duration + StageOneStorm.LastTriggered){FlowOutIntensity = FlowOutIntensity - 0.1;}
+// }
 
 void setup() {
   strip.begin();
@@ -160,8 +168,8 @@ void setup() {
   WaveUpdate();
 }
 
-void Rain(){
-  if(digitalRead(Rain_Input)== HIGH && RainPush == false){
+void Rain(){ // Could be cleaned more
+  if(digitalRead(Rain_Input)== HIGH && RainPush == false){ // Rope Pull check that'll add up to three and cut off at a certain point
     RainWait.LastTriggered = CurrentTime;
     if(ProjectedStormLevel<3 && Raining == false){ProjectedStormLevel++;}
     RainPush = true;
@@ -227,22 +235,23 @@ void Rain(){
   }
 
 
-  if(StormLevel < ProjectedStormLevel){
+  if(StormLevel < ProjectedStormLevel){ // Increases StormLevel after a certain duration
     if(CurrentTime >= RainWait.LastTriggered + RainWait.Duration){
       StormLevel++;
       RainWait.LastTriggered = CurrentTime;
     }
   }
-  else if(StormLevel > ProjectedStormLevel){
-    if(StormLevel == 3){RainHold.Duration = 5000;}
-    else{RainHold.Duration = 1000;}
-    
-    if(CurrentTime >= RainWait.LastTriggered + RainWait.Duration  && CurrentTime >= RainHold.LastTriggered + RainHold.Duration){
+  else if(StormLevel > ProjectedStormLevel){    
+    if((CurrentTime >= RainWait.LastTriggered + RainWait.Duration  && CurrentTime >= RainHold.LastTriggered + RainHold.Duration) || (CurrentTime >= StageThreeStorm.LastTriggered + StageThreeStorm.Duration && StormLevel == 3)){
       StormLevel--;
       RainWait.LastTriggered = CurrentTime;
+      //Serial.println("Drop");
     }
   }
   else if(StormLevel == ProjectedStormLevel){
+    if(StormLevel == 3){RainHold.Duration = StageThreeStorm.Duration;}
+    else{RainHold.Duration = 1000;}
+    
     RainHold.LastTriggered = CurrentTime;
     ProjectedStormLevel = 0;
   }
@@ -250,162 +259,115 @@ void Rain(){
   if(StormLevel > 0 && ProjectedStormLevel == 0){Raining = true;}
   else{Raining = false;}
 
-  StormIntensity = StormLevel + 1;
+  //StormIntensity = StormLevel + 1;
+}
+
+void RainGutters(){
+  if(StormLevel > 0){
+    for(int x = 0; x < GutterLength - GutterLead; x++){ // Base Animation
+      //for(int Gutter = 0; Gutter <= 4; Gutter++){strip.setPixelColor((Num_Pixels - (3*Gutter))+x,0,GutterHue[x], GutterHue[x]+5);}
+      strip.setPixelColor((Num_Pixels - (GutterLength)) + x,0,GutterHue.GreenHue[x], GutterHue.BlueHue[x]+5);
+      strip.setPixelColor((Num_Pixels - (GutterLength * 2)) + x,0,GutterHue.GreenHue[x], GutterHue.BlueHue[x]+5);
+      strip.setPixelColor((Num_Pixels - (GutterLength * 3)) + x,0,GutterHue.GreenHue[x], GutterHue.BlueHue[x]+5);
+      strip.setPixelColor((Num_Pixels - (GutterLength * 4)) + x,0,GutterHue.GreenHue[x], GutterHue.BlueHue[x]+5);
+    }
+    if(GutterLead > 0){GutterLead--;}
+  }
+  else{
+    for(int x = GutterLead; x < GutterLength; x++){ // Base Animation
+      //for(int Gutter = 0; Gutter <= 4; Gutter++){strip.setPixelColor((Num_Pixels - (3*Gutter))+x,0,GutterHue[x], GutterHue[x]+5);}
+      strip.setPixelColor((Num_Pixels - (GutterLength)) + x,0,GutterHue.GreenHue[x], GutterHue.BlueHue[x]+5);
+      strip.setPixelColor((Num_Pixels - (GutterLength * 2)) + x,0,GutterHue.GreenHue[x], GutterHue.BlueHue[x]+5);
+      strip.setPixelColor((Num_Pixels - (GutterLength * 3)) + x,0,GutterHue.GreenHue[x], GutterHue.BlueHue[x]+5);
+      strip.setPixelColor((Num_Pixels - (GutterLength * 4)) + x,0,GutterHue.GreenHue[x], GutterHue.BlueHue[x]+5);
+    }
+    for(int x = 1; x <= 4; x++){strip.setPixelColor((Num_Pixels - (GutterLength*x)) + GutterLead, 0, 0, 0);}
+    if(GutterLead < GutterLength){GutterLead++;}
+  }
 }
 
 void UpperSewers(){
   if(CurrentTime >= SewersFrame.Duration + SewersFrame.LastTriggered){
     for(int x = 0; x < LengthOfUpperSewer; x++){
-      if (StormLevel == 0){
-        strip.setPixelColor(x+UpperSewerStart,0,0,(1+SewerWaveHue.BlueHue[x-(Length*(x/Length))]) * 10);
-        strip.setPixelColor(UpperSewerEnd-x,0,0,(1+SewerWaveHue.BlueHue[x-(Length*(x/Length))]) * 10);
-      }
-      else if(StormLevel == 1){
-        strip.setPixelColor(x+UpperSewerStart,0,(SewerWaveHue.GreenHue[x-(Length*(x/Length))]+1) * (CurrentShift/3),(1+SewerWaveHue.BlueHue[x-(Length*(x/Length))]) * (10-(CurrentShift/3)));
-        strip.setPixelColor(UpperSewerEnd-x,0,(SewerWaveHue.GreenHue[x-(Length*(x/Length))]+1) * (CurrentShift/3),(1+SewerWaveHue.BlueHue[x-(Length*(x/Length))]) * (10-(CurrentShift/3)));
-      }
-      else if (StormLevel == 2){
-        strip.setPixelColor(x+UpperSewerStart,0,(SewerWaveHue.GreenHue[x-(Length*(x/Length))]+1) * (CurrentShift/2),(1+SewerWaveHue.BlueHue[x-(Length*(x/Length))]) * (10-(CurrentShift/2)));
-        strip.setPixelColor(UpperSewerEnd-x,0,(SewerWaveHue.GreenHue[x-(Length*(x/Length))]+1) * (CurrentShift/2),(1+SewerWaveHue.BlueHue[x-(Length*(x/Length))]) * (10-(CurrentShift/2)));
-      }
-      else if (StormLevel == 3){
-        strip.setPixelColor(x+UpperSewerStart,0,(SewerWaveHue.GreenHue[x-(Length*(x/Length))]+1) * (CurrentShift),(1+SewerWaveHue.BlueHue[x-(Length*(x/Length))]) * (10-(CurrentShift/2)));
-        strip.setPixelColor(UpperSewerEnd-x,0,(SewerWaveHue.GreenHue[x-(Length*(x/Length))]+1) * (CurrentShift),(1+SewerWaveHue.BlueHue[x-(Length*(x/Length))]) * (10-(CurrentShift/2)));
-      }
+      strip.setPixelColor(x+UpperSewerStart,0,SewerWaveHue.GreenHue[x-(Length*(x/Length))]+10,SewerWaveHue.BlueHue[x-(Length*(x/Length))]+10);
+      strip.setPixelColor(UpperSewerEnd-x,0,SewerWaveHue.GreenHue[x-(Length*(x/Length))]+10,SewerWaveHue.BlueHue[x-(Length*(x/Length))]+10);
+      //Serial.println(CurrentShift);
     }
   }
 }
 
-void LowerSewers(){
+void LowerSewers(){ // Works as intended but open for tweaking
  if(CurrentTime >= SewersFrame.Duration + SewersFrame.LastTriggered){
-    for(int x = 0; x < LowerSewersLength; x++){
-      strip.setPixelColor(WaterTreatmentStart + x,0,SewerWaveHue.GreenHue[x-(Length*(x/Length))]+10,10+SewerWaveHue.BlueHue[x-(Length*(x/Length))]);
-      if(x <= LowerSewerCombine){strip.setPixelColor(OceanDumpStart - x,0,SewerWaveHue.GreenHue[x-(Length*(x/Length))]+10,10+SewerWaveHue.BlueHue[x-(Length*(x/Length))]);}
-
-      if(StormLevel == 3){
-        if(StormStart == false){
-          StageOneStorm.LastTriggered = CurrentTime;
-          StageTwoStorm.LastTriggered = CurrentTime;
-          StageTwoStorm.LastTriggered = CurrentTime;
-          StormStart = true;
+    if(StormLevel < 3){
+      for(int x = 0; x < LowerSewersLength; x++){
+        strip.setPixelColor(WaterTreatmentStart + x,0,SewerWaveHue.GreenHue[x-(Length*(x/Length))]+10,10+SewerWaveHue.BlueHue[x-(Length*(x/Length))]);
+        if(x <= LowerSewerCombine){strip.setPixelColor(OceanDumpStart - x,0,SewerWaveHue.GreenHue[x-(Length*(x/Length))]+10,10+SewerWaveHue.BlueHue[x-(Length*(x/Length))]);}
+        else if(x <= LowerSewersLength - DrainageLength && StormStart == true){
+          if(FlowOutIntensity > 0 && Runoff == RunoffLead){FlowOutIntensity = FlowOutIntensity - .005;}
+          else if (FlowOutIntensity == 0){StormStart = false;}
+          strip.setPixelColor(OceanDumpStart - x,0,(FlowOutHue.GreenHue[x-(Length*(x/Length))]+10) * FlowOutIntensity, (10+FlowOutHue.BlueHue[x-(Length*(x/Length))])*FlowOutIntensity);
         }
-
-        if(CurrentTime <= StageOneStorm.Duration + StageOneStorm.LastTriggered){ //Stage 1: Fade In [x]
-          if(x < LowerSewersLength - DrainageLength && x > LowerSewerCombine){strip.setPixelColor(OceanDumpStart - x,0,FlowOutHue.GreenHue[x-(Length*(x/Length))]+10,10+FlowOutHue.BlueHue[x-(Length*(x/Length))]);}
-          if(FlowOutIntensity < 100){FlowOutIntensity++;}
-          FlowOutUpdate();
-        }
-        else if(CurrentTime <= StageTwoStorm.Duration + StageTwoStorm.LastTriggered){ // Stage 2: Flash [x]
-          if( x < LowerSewersLength - DrainageLength + WarningLength && x > LowerSewersLength - DrainageLength - WarningLength){strip.setPixelColor(OceanDumpStart - x,0,FlowOutHue.GreenHue[x-(Length*(x/Length))]+10,10+FlowOutHue.BlueHue[x-(Length*(x/Length))]);}
-          else if(x < LowerSewersLength - DrainageLength && x > LowerSewerCombine){strip.setPixelColor(OceanDumpStart - x,0,FlowOutHue.GreenHue[x-(Length*(x/Length))]+10,10+FlowOutHue.BlueHue[x-(Length*(x/Length))],FlowOutHue.WhiteHue[WarningIntensity]);}
-          
-          if(WarningIntensity < Length && WarningRise == true){WarningIntenisty++;}
-          else if(WarningIntenisty == Length){WarningRise = false;}
-          else if(WarningIntensity > 0){WarnignIntensity--;}
-          else if(WarnignIntensity == 0){WarnignRise = true;}
-        }
-        else if(CurrentTime <= StageThreeStorm.Duration + StageThreeStorm.LastTriggered){ // Stage 3: Flow out [x]
-          if(x < LowerSewersLength - DrainageLength + Runoff && x > LowerSewerCombine){strip.setPixelColor(OceanDumpStart - x,0,FlowOutHue.GreenHue[x-(Length*(x/Length))]+10,10+FlowOutHue.BlueHue[x-(Length*(x/Length))]);}
-          for(int i = 0; i < Length; i++){
-            if(Runoff - i < 0){break;}
-            else if(Runoff - i < DrainageLength){strip.setPixelColor((OceanDumpEnd + DrainageLength) - (Runoff - i),0,0,0);} 
-          }
-          if(Runoff - Length < DrainageLength){Runoff++;}
-        }
+        else if(x >= LowerSewersLength - DrainageLength + RunoffLead && Runoff > 0){strip.setPixelColor(OceanDumpStart - x,0,FlowOutHue.GreenHue[x-(Length*(x/Length))]+10,10+FlowOutHue.BlueHue[x-(Length*(x/Length))]);}
       }
-      else{ //Stage 4: All flow out [x]
-        StormStart = false;
-        if(x < LowerSewersLength - DrainageLength && x > LowerSewerCombine){strip.setPixelColor(OceanDumpStart - x,0,FlowOutHue.GreenHue[x-(Length*(x/Length))]+10,10+FlowOutHue.BlueHue[x-(Length*(x/Length))]);}
-        
-        if(Runoff != RunoffLead){
-          for(int i = 0; i < Length; i++){
-            if(RunoffLead - i < 0){break;}
-            else if(RunoffLead - i < DrainageLength){strip.setPixelColor((OceanDumpEnd + DrainageLength) - (Runoff - i),0,0,0);} 
-          }
-          if(RunoffLead - Length < DrainageLength){Runoff++;}
+
+      if(Runoff > 0){
+        for(int x = 0; x < Length; x++){
+          if(RunoffLead - x < 0){break;}
+          else if (RunoffLead - x < DrainageLength){strip.setPixelColor((OceanDumpEnd + DrainageLength) - (RunoffLead - x),0,RunoffLeadHue.GreenHue[x],RunoffLeadHue.BlueHue[x]);}
         }
+        if(RunoffLead < Runoff){RunoffLead++;}
         else{
           Runoff = 0;
           RunoffLead = 0;
-          if(FlowIntensity > 0){FlowIntensity--;}
-          FLowOutUpdate();
         }
       }
     }
-  }
-
-    return;
-    if (StormLevel == 1){
-      for(int x = 0; x < LowerSewersLength; x++){
-          strip.setPixelColor(WaterTreatmentStart + x,0,(SewerWaveHue.GreenHue[x-(Length*(x/Length))]+1) * (CurrentShift/3),(1+SewerWaveHue.BlueHue[x-(Length*(x/Length))]) * (10-(CurrentShift/3)));      
-          if(x < LowerSewerCombine){strip.setPixelColor(OceanDumpStart - x,0,((SewerWaveHue.GreenHue[x-(Length*(x/Length))]+1) * (CurrentShift/3)),((1+SewerWaveHue.BlueHue[x-(Length*(x/Length))]) * (10-(CurrentShift/3))));}
-          //else if( x < LowerSewerCombine + Runoff){strip.setPixelColor(OceanDumpStart - x,0,RunoffFade*((SewerWaveHue.GreenHue[x-(Length*(x/Length))]+1) * (CurrentShift/3))/100,RunoffFade*((1+SewerWaveHue.BlueHue[x-(Length*(x/Length))]) * (10-(CurrentShift/3)))/100);}
-          else{strip.setPixelColor(OceanDumpStart - x,0,0,0);}
+    else{
+      if(StormStart == false){
+        StageOneStorm.LastTriggered = CurrentTime;
+        StageTwoStorm.LastTriggered = CurrentTime;
+        StageTwoStorm.LastTriggered = CurrentTime;
+        StormStart = true;
       }
 
-      if(Runoff != 0){
-        Runoff = 0;
-        RunoffLead = 0;
-      }
-    }
-
-    else if (StormLevel == 2){
-      for(int x = 0; x < LowerSewersLength; x++){
-        strip.setPixelColor(WaterTreatmentStart + x,0,(SewerWaveHue.GreenHue[x-(Length*(x/Length))]+1) * (CurrentShift/3),(1+SewerWaveHue.BlueHue[x-(Length*(x/Length))]) * (10-(CurrentShift/3)));      
-        if( x < LowerSewerCombine + Runoff){strip.setPixelColor(OceanDumpStart - x,0,(SewerWaveHue.GreenHue[x-(Length*(x/Length))]+1) * (CurrentShift/3),(1+SewerWaveHue.BlueHue[x-(Length*(x/Length))]) * (10-(CurrentShift/3)));}
-        else{strip.setPixelColor(OceanDumpStart - x,0,0,0);}
-      }
-
-      if(Runoff > LowerSewersLength - DrainageLength - LowerSewerCombine || RunoffLead > LowerSewersLength - DrainageLength - LowerSewerCombine){ // Trickle out to ocean
-        if(RunoffLead == Runoff){RunoffLead = LowerSewersLength - DrainageLength - LowerSewerCombine;}
-        else if (RunoffLead == LowerSewersLength - LowerSewerCombine + Length){RunoffLead = LowerSewersLength - DrainageLength - LowerSewerCombine;}
-        else{RunoffLead++;}
-
-        for(int x = 0; x < Length; x++){
-          if(RunoffLead - x < LowerSewersLength - LowerSewerCombine - DrainageLength){break;}
-          else if(RunoffLead - x < LowerSewersLength - LowerSewerCombine){strip.setPixelColor(LowerSewersStart - LowerSewerCombine - (RunoffLead-x),0,(SewerWaveHue.GreenHue[x]+1) * (CurrentShift/2),(1+SewerWaveHue.BlueHue[x]) * (10-(CurrentShift/2)));}
+      for(int x = 0; x < LowerSewersLength; x++){ // Continual Flow Animations
+        strip.setPixelColor(WaterTreatmentStart + x,0,SewerWaveHue.GreenHue[x-(Length*(x/Length))]+10,10+SewerWaveHue.BlueHue[x-(Length*(x/Length))]);
+        if(x <= LowerSewerCombine){strip.setPixelColor(OceanDumpStart - x,0,SewerWaveHue.GreenHue[x-(Length*(x/Length))]+10,10+SewerWaveHue.BlueHue[x-(Length*(x/Length))]);}
+        else if(CurrentTime <= StageOneStorm.Duration + StageOneStorm.LastTriggered && x < LowerSewersLength - DrainageLength){
+          if(FlowOutIntensity < 1){FlowOutIntensity = FlowOutIntensity + .005;}
+          strip.setPixelColor(OceanDumpStart - x,0,(FlowOutHue.GreenHue[x-(Length*(x/Length))]+10) * FlowOutIntensity, (10+FlowOutHue.BlueHue[x-(Length*(x/Length))])*FlowOutIntensity);
         }
-
-        if(RunoffLead > LowerSewersLength - DrainageLength - LowerSewerCombine){Runoff = LowerSewersLength - DrainageLength - LowerSewerCombine;}
-      }
-
-      else if (Runoff < LowerSewersLength - DrainageLength - LowerSewerCombine){ // Fade In
-        RunoffLead = LowerSewersLength - DrainageLength - LowerSewerCombine;
-        Runoff = LowerSewersLength - DrainageLength - LowerSewerCombine;
-        if(RunoffFade < 100){RunoffFade = RunoffFade + 5;}
-
-
-        // Trickle out to DrainageRegulator
-        // if(RunoffLead < (LowerSewersLength-DrainageLength-LowerSewerCombine)){RunoffLead++;}
-        // for(int x = 0; x < abs(RunoffLead -Runoff); x++){strip.setPixelColor(((OceanDumpStart-LowerSewerCombine) - Runoff - x),0,(RunoffLeadHue.GreenHue[x] +1)*(CurrentShift/3),(RunoffLeadHue.BlueHue[x] +1)*(10-(CurrentShift/3)));}
-        // if( (abs(RunoffLead - Runoff) > 0 && RunoffLead == (LowerSewersLength-DrainageLength-LowerSewerCombine) || (RunoffLead - Runoff) > Length)){Runoff++;}
-      }
-    }
-
-    else if (StormLevel == 3){ //Flow out to Ocean
-      for(int x = 0; x < LowerSewersLength; x++){
-        strip.setPixelColor(WaterTreatmentStart + x,0,(SewerWaveHue.GreenHue[x-(Length*(x/Length))]+1) * (CurrentShift/3),(1+SewerWaveHue.BlueHue[x-(Length*(x/Length))]) * (10-(CurrentShift/3)));      
-        if( x < LowerSewerCombine + Runoff){strip.setPixelColor(OceanDumpStart - x,0,(SewerWaveHue.GreenHue[x-(Length*(x/Length))]+1) * (CurrentShift/3),(1+SewerWaveHue.BlueHue[x-(Length*(x/Length))]) * (10-(CurrentShift/3)));}
-        else{strip.setPixelColor(OceanDumpStart - x,0,0,0);}
-      }
-
-      if(Runoff < LowerSewersLength - LowerSewerCombine || Runoff != RunoffLead){
-        if(Runoff < LowerSewersLength-LowerSewerCombine){RunoffLead++;}
-        else{RunoffLead = Runoff;}
-
-        for(int x = 0; x < Length; x++){
-          if(RunoffLead - x < LowerSewersStart -LowerSewerCombine - DrainageLength){break;}
-          else if(RunoffLead - x < LowerSewersStart -LowerSewerCombine){strip.setPixelColor((LowerSewersStart -LowerSewerCombine - (RunoffLead - x)),0,(RunoffLeadHue.GreenHue[Length-x-1] +1)*(CurrentShift),(RunoffLeadHue.BlueHue[Length-1-x] +1)*(10-(CurrentShift/2)));}
+        else if(CurrentTime <= StageTwoStorm.Duration + StageTwoStorm.LastTriggered && x < LowerSewersLength - DrainageLength){
+          if(x> LowerSewersLength - DrainageLength - WarningLength && x <= LowerSewersLength - DrainageLength){strip.setPixelColor(OceanDumpStart - x,0,0,0,FlowOutHue.WhiteHue[0]);}//Flash
+          //if(x> LowerSewersLength - DrainageLength - WarningLength && x <= LowerSewersLength - DrainageLength){strip.setPixelColor(OceanDumpStart - x,0,FlowOutHue.GreenHue[x-(Length*(x/Length))]+10,10+FlowOutHue.BlueHue[x-(Length*(x/Length))],FlowOutHue.WhiteHue[0]);}//Flash
+          else{strip.setPixelColor(OceanDumpStart - x,0,FlowOutHue.GreenHue[x-(Length*(x/Length))]+10,10+FlowOutHue.BlueHue[x-(Length*(x/Length))]);}//Normal
+          //Serial.println(FlowOutHue.WhiteHue[0]);
         }
-        if(abs(Runoff - RunoffLead) > Length && Runoff < LowerSewersLength - LowerSewerCombine){Runoff++;}
+       else if(CurrentTime <= StageThreeStorm.Duration + StageThreeStorm.LastTriggered && x < LowerSewersLength - DrainageLength + Runoff){
+          if(x> LowerSewersLength - DrainageLength - WarningLength && x <= LowerSewersLength - DrainageLength && Runoff < DrainageLength){strip.setPixelColor(OceanDumpStart - x,0,FlowOutHue.GreenHue[x-(Length*(x/Length))]+10,10+FlowOutHue.BlueHue[x-(Length*(x/Length))],FlowOutHue.WhiteHue[0]);}//Flash
+          else{strip.setPixelColor(OceanDumpStart - x,0,FlowOutHue.GreenHue[x-(Length*(x/Length))]+10,10+FlowOutHue.BlueHue[x-(Length*(x/Length))]);}
+        }
+        //else if(CurrentTime <= StageThreeStorm.Duration + StageThreeStorm.LastTriggered && x < LowerSewersLength){strip.setPixelColor(OceanDumpStart - x,0,FlowOutHue.GreenHue[x-(Length*(x/Length))]+10,10+FlowOutHue.BlueHue[x-(Length*(x/Length))]);}
       }
-    }
 
-    else if(StormLevel == 0) {    
-      for(int x = 0; x < LowerSewersLength; x++){
-          strip.setPixelColor(WaterTreatmentStart + x,0,(SewerWaveHue.GreenHue[x-(Length*(x/Length))]+1) * (CurrentShift/3),(1+SewerWaveHue.BlueHue[x-(Length*(x/Length))]) * (10-(CurrentShift/3)));      
-          if(x < LowerSewerCombine){strip.setPixelColor(OceanDumpStart - x,0,((SewerWaveHue.GreenHue[x-(Length*(x/Length))]+1) * (CurrentShift/3)),((1+SewerWaveHue.BlueHue[x-(Length*(x/Length))]) * (10-(CurrentShift/3))));}
-          else{strip.setPixelColor(OceanDumpStart - x,0,0,0);}
+      if(CurrentTime <= StageOneStorm.Duration + StageOneStorm.LastTriggered) {// Stage 1: Fade In [o] ... it's good as is, but could be better and smoother
+        //if(FlowOutIntensity < 1){FlowOutIntensity = FlowOutIntensity + .01;}
+        //FlowOutUpdate();
+      }
+      else if(CurrentTime <= StageTwoStorm.Duration + StageTwoStorm.LastTriggered){ // Stage 2: FlashWarning[o] ... it's good and does not use this
+        // if(WarningIntensity < Length && WarningRise == true){WarningIntensity++;}
+        // else if(WarningIntensity == Length){WarningRise = false;}
+        // else if(WarningIntensity > 0){WarningIntensity--;}
+        // else if(WarningIntensity == 0){WarningRise = true;}
+        //Serial.println(WarningIntensity);
+      }
+      else if(CurrentTime <= StageThreeStorm.Duration + StageThreeStorm.LastTriggered){ // Stage 3: FlowOut[o] ... it works
+        for(int i = 0; i < Length; i++){
+          RunoffLead = 0;
+          if(Runoff - i < 0){break;}
+          else if(Runoff - i < DrainageLength){strip.setPixelColor((OceanDumpEnd + DrainageLength) - (Runoff - i),0,RunoffLeadHue.GreenHue[Length - 1 - i],RunoffLeadHue.BlueHue[Length - 1 - i]);} 
+        }
+        if(Runoff - Length < DrainageLength){Runoff++;}
       }
     }
   }
@@ -414,13 +376,37 @@ void LowerSewers(){
 void loop(){
   CurrentTime = millis();
   Rain();
-  //UpperSewers();
+  UpperSewers();
   LowerSewers();
 
-  // if(CurrentTime  >= RainFrame.Duration + RainFrame.LastTriggered){
-  //   RainGutters();
-  //   RainFrame.LastTriggered = CurrentTime;
-  // }
+  if(CurrentTime  >= RainFrame.Duration + RainFrame.LastTriggered){
+   Serial.println(StormLevel);
+    if(GutterIntensity != StormLevel){
+      if(StormLevel == 1){GutterFlowUpdate(StormLevel,100,100);}
+      else if (StormLevel == 2){GutterFlowUpdate(StormLevel,150,150);}
+      else if (StormLevel == 3){GutterFlowUpdate(StormLevel,200,200);}
+      GutterIntensity = StormLevel;
+    }
+
+    RainGutters();
+    
+    if(StormLevel > 0){
+      GutterHue.LastBlue = GutterHue.BlueHue[GutterHueLength -1];
+      GutterHue.LastGreen = GutterHue.GreenHue[GutterHueLength -1];
+      for(int x = GutterHueLength; x >= 0; x--){
+        if(x != 0){
+          GutterHue.BlueHue[x] = GutterHue.BlueHue[x-1];
+          GutterHue.GreenHue[x] = GutterHue.GreenHue[x-1];
+        }
+        else{
+           GutterHue.BlueHue[x] = GutterHue.LastBlue;
+          GutterHue.GreenHue[x] = GutterHue.LastGreen;
+        }
+      }
+    }
+  
+    RainFrame.LastTriggered = CurrentTime;
+  }
 
   if(CurrentTime  >= SewersFrame.Duration + SewersFrame.LastTriggered){
     SewerWaveHue.LastBlue = SewerWaveHue.BlueHue[Length-1];
@@ -428,6 +414,10 @@ void loop(){
 
     FlowOutHue.LastBlue = FlowOutHue.BlueHue[Length-1];
     FlowOutHue.LastGreen = FlowOutHue.GreenHue[Length -1];
+    FlowOutHue.LastWhite = FlowOutHue.WhiteHue[Length -1];
+
+
+    //LastFlowOutMultiplier = FlowOutMultiplier[Length - 1];
 
     for(int x = Length; x >= 0; x--){
       if(x!=0){
@@ -436,6 +426,9 @@ void loop(){
 
         FlowOutHue.BlueHue[x] = FlowOutHue.BlueHue[x-1];
         FlowOutHue.GreenHue[x] = FlowOutHue.GreenHue[x-1];
+        if(FlowOutHue.WhiteHue[0] != 0 || (CurrentTime <= StageTwoStorm.Duration + StageTwoStorm.LastTriggered && CurrentTime > StageOneStorm.Duration + StageOneStorm.LastTriggered)){FlowOutHue.WhiteHue[x] = FlowOutHue.WhiteHue[x-1];}
+
+        //FlowOutMultiplier[x] = FlowOutMultiplier[x-1];
       } 
       else {
         SewerWaveHue.BlueHue[x]=SewerWaveHue.LastBlue;
@@ -443,25 +436,29 @@ void loop(){
 
         FlowOutHue.BlueHue[x] = FlowOutHue.LastBlue;
         FlowOutHue.GreenHue[x] = FlowOutHue.LastGreen;
+        if(FlowOutHue.WhiteHue[0] != 0 || (CurrentTime <= StageTwoStorm.Duration + StageTwoStorm.LastTriggered && CurrentTime > StageOneStorm.Duration + StageOneStorm.LastTriggered)){FlowOutHue.WhiteHue[x] = FlowOutHue.LastWhite;}
+
+
+        //FlowOutMultiplier[x] = LastFlowOutMultiplier;
       }
     }
 
-    if(StormLevel > 0){RunoffStart = true;}
-    if(RunoffStart = true){
-      if(CurrentTime >= BlueWaveHoldTime.LastTriggered + BlueWaveHoldTime.Duration && CurrentTime >= GreenWaveHoldTime.LastTriggered + GreenWaveHoldTime.Duration){
-        if(CurrentShift < 10 && CurrentShiftRise == true){CurrentShift++;}
-        else if (CurrentShift >= 10 && CurrentShiftRise == true){
-          GreenWaveHoldTime.LastTriggered = CurrentTime;
-          CurrentShiftRise = false;
-        }
-        else if (CurrentShift > 1 && CurrentShiftRise == false){CurrentShift--;}
-        else if(CurrentShift <= 1 && CurrentShiftRise == false){
-          BlueWaveHoldTime.LastTriggered = CurrentTime;
-          CurrentShiftRise = true;
-        }
-      }
-      if(CurrentShift == 0 && StormLevel == 0){RunoffStart = false;}
-    }
+    // if(StormLevel > 0){RunoffStart = true;}
+    // if(RunoffStart = true){
+    //   if(CurrentTime >= BlueWaveHoldTime.LastTriggered + BlueWaveHoldTime.Duration && CurrentTime >= GreenWaveHoldTime.LastTriggered + GreenWaveHoldTime.Duration){
+    //     if(CurrentShift < 10 && CurrentShiftRise == true){CurrentShift++;}
+    //     else if (CurrentShift >= 10 && CurrentShiftRise == true){
+    //       GreenWaveHoldTime.LastTriggered = CurrentTime;
+    //       CurrentShiftRise = false;
+    //     }
+    //     else if (CurrentShift > 1 && CurrentShiftRise == false){CurrentShift--;}
+    //     else if(CurrentShift <= 1 && CurrentShiftRise == false){
+    //       BlueWaveHoldTime.LastTriggered = CurrentTime;
+    //       CurrentShiftRise = true;
+    //     }
+    //   }
+    //   if(CurrentShift == 0 && StormLevel == 0){RunoffStart = false;}
+    // }
 
     SewersFrame.LastTriggered = CurrentTime;
   }
