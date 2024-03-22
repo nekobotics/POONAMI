@@ -27,12 +27,6 @@
 #define Num_Pixels 261
 #define BRIGHTNESS 255
 
-int Runoff = 0;
-int RunoffLead = 0;
-bool RunoffDrain = false;
-float RunoffFade = 0;
-bool RunoffStart = false;
-
 unsigned long CurrentTime;
 struct Time {
   unsigned long LastTriggered;
@@ -71,6 +65,12 @@ const int WarningLength = 6;
 int WarningIntensity;
 bool StormStart = false;
 
+int Runoff = 0;
+int RunoffLead = 0;
+bool RunoffDrain = false;
+float RunoffFade = 0;
+bool RunoffStart = false;
+
 const int Length = 20;
 const int GutterHueLength = 6;
 
@@ -107,9 +107,6 @@ struct StaticColor {
 // StaticColor PipeLeadHue;
 StaticColor RunoffLeadHue;
 StaticColor RunoffLeadHueTest;
-
-const int StreakLength = 5;
-int StreakHue[StreakLength];
 
 double FlowOutIntensity = 0;
 //double FlowOutMultiplier[Length];
