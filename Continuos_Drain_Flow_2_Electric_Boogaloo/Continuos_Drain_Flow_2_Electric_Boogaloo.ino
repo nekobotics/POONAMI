@@ -10,8 +10,8 @@
 #define Input_3 11 //
 #define Input_4 10 //
 
-#define ToiletSound 26 //
-#define ShowerSound 27 //
+//#define ToiletSound 26 //
+//#define ShowerSound 27 //
 
 #define RainLvl1 51 //
 #define RainLvl2 49 //
@@ -83,6 +83,13 @@ PixelControl PipeOne = {false, false, false,0,0,0,9,0};
 PixelControl PipeTwo = {false, false, false,10,10,10,27,10};
 PixelControl PipeThree = {false, false, false,28,28,28,40,28};
 PixelControl PipeFour = {false, false, false,41,41,41,69,41};
+
+//PipeSounds trigger
+bool ToiletSound = false;
+bool ShowerSound = false;
+bool SinkSound = false;
+bool WasherSound= false;
+
 
 const int PipeOneSewer = 10;
 const int PipeTwoSewer = 15;
@@ -236,8 +243,8 @@ void setup() {
   pinMode(Output_3,OUTPUT);
   pinMode(Output_4,OUTPUT);
 
-  pinMode(ShowerSound,OUTPUT);
-  pinMode(ToiletSound,OUTPUT);
+  // pinMode(ShowerSound,OUTPUT);
+  // pinMode(ToiletSound,OUTPUT);
 
   pinMode(RainLvl1,OUTPUT);
   pinMode(RainLvl2,OUTPUT);
@@ -322,7 +329,7 @@ void BathTub(){
         PipeTwo.start = true;
       }
       else if(CurrentTime >= BathWait.LastTriggered + BathWait.Duration){
-        digitalWrite(ShowerSound, HIGH);
+        //digitalWrite(ShowerSound, HIGH);
         for(int x = 0; x < PipeTwo.Stream-PipeTwo.Begin; x++){strip.setPixelColor(PipeTwo.Begin + x, 0, WaveHue[x -(Length*(x/Length))], 150);}
         if(PipeTwo.Stream <= PipeTwo.End){PipeTwo.Stream++;}
       }
@@ -330,7 +337,7 @@ void BathTub(){
 
     else if(PipeTwo.start == true && CurrentTime >= BathWait.LastTriggered + BathWait.Duration){
       PipeTwo.run = true;
-      digitalWrite(ShowerSound, LOW);
+      //digitalWrite(ShowerSound, LOW);
       
       if(PipeTwo.Stream > PipeTwo.Begin){
         for(int x = PipeTwo.Pixel; x < PipeTwo.Stream; x++){strip.setPixelColor(x, 0, WaveHue[x -(Length*(x/Length))], 150);}
@@ -464,6 +471,38 @@ void Sink(){
       if(PipeFour.Poo < PipeFour.End + StreakLength){PipeFour.Poo++;}
     }
   }
+}
+
+void Sounds(){
+  if(digitalRead(Input_1) == HIGH && CurrentTime > ToiletWait.LastTriggered + ToiletWait.Duration && ToiletSound == false){
+    Serial.println(1);
+    ToiletSound = true;
+  }
+  else if(digitalRead(Input_1) == LOW && PipeOne.start == false){ToiletSound = false;}
+
+
+  if(digitalRead(Input_2) == HIGH && CurrentTime > BathWait.LastTriggered + BathWait.Duration && WasherSound == false){
+    Serial.println(2);
+    WasherSound = true;
+  }
+  else if(digitalRead(Input_2) == LOW && PipeTwo.start == false){WasherSound = false;}
+
+
+  if(digitalRead(Input_3) == HIGH && CurrentTime > ShowerWait.LastTriggered + ShowerWait.Duration && ShowerSound == false && PipeThree.run == false){
+    Serial.println(3);
+    ShowerSound = true;
+  }
+  else if(digitalRead(Input_3) == LOW && ShowerSound == true){
+   Serial.println(5);
+    ShowerSound = false;
+  }
+
+
+  if(digitalRead(Input_4) == HIGH && CurrentTime > SinkWait.LastTriggered + SinkWait.Duration && SinkSound == false){
+    Serial.println(4);
+    SinkSound = true;
+  }
+  else if(digitalRead(Input_4) == LOW && PipeFour.start == false){SinkSound = false;}
 }
 
 void Rain(){ // Could be cleaned more
@@ -1062,10 +1101,14 @@ void PooFourTravel() {
 
 void loop() {
   CurrentTime = millis();
-  Rain();
+  //Rain();
   //Poo();
-  UpperSewers();
-  LowerSewers();
+  //UpperSewers();
+  //LowerSewers();
+  Toilet();
+  BathTub();
+  Shower();
+  Sink();
 
   if(CurrentTime  >= RainFrame.Duration + RainFrame.LastTriggered){
    //Serial.println(StormLevel);
@@ -1152,10 +1195,7 @@ void loop() {
   }
 
   if(CurrentTime  >= PipesFrame.Duration + PipesFrame.LastTriggered){
-    //Toilet();
-    //BathTub();
-    //Shower();
-    //Sink();
+    Sounds();
 
     LastPixel = WaveHue[Length-1];
     for(int x = Length; x >= 0; x--){
