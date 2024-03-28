@@ -1,9 +1,9 @@
 #include <Adafruit_NeoPixel.h>
 
-#define Output_1 2 //
-#define Output_2 3 //
-#define Output_3 4 //
-#define Output_4 5 //
+#define Output_1 7 //
+#define Output_2 6 //
+#define Output_3 5 //
+#define Output_4 4 //
 
 #define Input_1 13 //
 #define Input_2 12 //
@@ -13,15 +13,15 @@
 //#define ToiletSound 26 //
 //#define ShowerSound 27 //
 
-#define RainLvl1 51 //
-#define RainLvl2 49 //
-#define RainLvl3 47 //
+#define RainLvl1 23 //
+#define RainLvl2 25 //
+#define RainLvl3 27 //
 
-#define Rain_Input 8 //
+#define Rain_Input 22 //
 
-#define Rain_Output1 22 //
-#define Rain_Output2 23 //
-#define Rain_Output3 24 //
+#define Rain_Output1 14 //
+#define Rain_Output2 15 //
+#define Rain_Output3 16 //
 
 #define Pixel_Pin 9 //
 #define Num_Pixels 261
