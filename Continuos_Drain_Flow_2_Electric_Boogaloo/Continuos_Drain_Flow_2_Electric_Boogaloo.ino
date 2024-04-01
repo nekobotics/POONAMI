@@ -39,16 +39,8 @@ struct Time {
 };
 //PipeTiming
 Time PipesFrame = {0,5};
-Time BathWait = {0,50};
-Time ToiletWait = BathWait;
-Time ShowerWait = BathWait;
-Time SinkWait = BathWait;
 //Poo Timing:
-Time PipeOnePooWait = {0,60};
-Time PipeTwoPooWait = PipeOnePooWait;
-Time PipeThreePooWait = PipeOnePooWait;
-Time PipeFourPooWait = PipeOnePooWait;
-Time PooOneSpeed = {0,11};
+Time PooFrame = {0,11};
 //RainTiming
 Time RainFrame = {0,10};
 Time RainWait = {0,500};
@@ -62,26 +54,31 @@ Time StageOneStorm = {0,2000};
 Time StageTwoStorm = {0,2000 + StageOneStorm.Duration};
 Time StageThreeStorm = {0,4000 + StageTwoStorm.Duration};
 
+//checks to make sure that each cord triggers once
+bool PullOne;
+bool PullTwo;
+bool PullThree;
+bool PullFour;
 
 
-bool allActive = false;
+//bool allActive = false;
 
 
-struct PixelControl {
-  bool PooPath;
-  bool run;
-  bool start;
-  int Stream;
-  int Pixel;
-  int Poo;
-  const int End;
-  const int Begin;
-};
+// struct PixelControl {
+//   bool PooPath;
+//   bool run;
+//   bool start;
+//   int Stream;
+//   int Pixel;
+//   int Poo;
+//   const int End;
+//   const int Begin;
+// };
 
-PixelControl PipeOne = {false, false, false,0,0,0,9,0};
-PixelControl PipeTwo = {false, false, false,10,10,10,27,10};
-PixelControl PipeThree = {false, false, false,28,28,28,40,28};
-PixelControl PipeFour = {false, false, false,41,41,41,69,41};
+// PixelControl PipeOne = {false, false, false,0,0,0,9,0};
+// PixelControl PipeTwo = {false, false, false,10,10,10,27,10};
+// PixelControl PipeThree = {false, false, false,28,28,28,40,28};
+// PixelControl PipeFour = {false, false, false,41,41,41,69,41};
 
 //PipeSounds trigger
 bool ToiletSound = false;
@@ -89,19 +86,16 @@ bool ShowerSound = false;
 bool SinkSound = false;
 bool WasherSound= false;
 
-
-const int PipeOneSewer = 10;
-const int PipeTwoSewer = 15;
-const int PipeThreeSewer = 22;
-const int PipeFourSewer = 5;
-// const int PipeSewerDropSize = 2;
-
 //Gutter Sizes and Variables
 const int GutterLength = 3;
 int GutterIntensity = 0;
 int GutterLead = GutterLength;
 
-//Upeer Sewers Sizes and Varialbles
+//Upper Sewers Sizes and Varialbles
+const int PipeOneSewer = 10;
+const int PipeTwoSewer = 15;
+const int PipeThreeSewer = 22;
+const int PipeFourSewer = 5;
 const int UpperSewerStart = 70;
 const int UpperSewerEnd = 142;
 const int LengthOfUpperSewer = 30;
@@ -150,6 +144,7 @@ struct ShiftingColor {
 ShiftingColor SewerWaveHue;
 ShiftingColor GutterHue;
 ShiftingColor FlowOutHue; 
+ShiftingColor PipeHue;
 
 //Color Arrays that are static
 struct StaticColor {
@@ -158,7 +153,7 @@ struct StaticColor {
   int BlueHue[Length];
 };
 
-// StaticColor PipeLeadHue;
+ StaticColor PipeLeadHue;
 StaticColor RunoffLeadHue;
 StaticColor RunoffLeadHueTest;
 
@@ -174,23 +169,171 @@ int BlueSewersLastPixel;
 int GreenSewersLastPixel;
 int LastGutterPixel;
 
-// struct PooDrop{
-//   bool active;
-//   int Pipe;
-//   int Poo[StreakLength];
-//   int Start[5];
-//   int End[5];
-//   int CurrentPath;
-// };
+//Size and starting pixel of all the pipes
+struct Pipe {
+  const int Start;
+  const int Length;
+  bool active;
+};
 
-// PooDrop PooOne = {false,0,{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},0};
-// PooDrop PooTwo = {false,0,{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},0};
-// PooDrop PooThree = {false,0,{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},0};
-// PooDrop PooFour = {false,0,{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},0};
+Pipe Toilet = {0,9,false};
+Pipe Washer = {10,17,false};
+Pipe Shower = {28,12, false};
+Pipe Sink = {41,28,false};
 
+//Full variables and functions for each run of a pipe
+struct PipeFlow {
+  int CurrentPipe;
+  bool PooBegin;
+  bool sound;
+  bool active;
+  bool begin;
+  bool StartDraining;
+  bool SewersBegin;
+  int Apartment;
+  int Trigger;
+  int PipeStart;
+  int PipeLength;
+  int DrainPixel;
+  int StreamPixel;
+  int PooPixel;
+  Time PipeWait = {0,50};
+  Time PooWait = {0,60};
+  
+  void setup(int Pipe){
+    if(Pipe == 1){
+      Toilet.active = true;
+      PipeStart = Toilet.Start;
+      PipeLength = Toilet.Length;
+      Trigger = Input_1;
+      Apartment = Output_1;
+    }
+    else if(Pipe == 2){
+      Washer.active = true;
+      PipeStart = Washer.Start;
+      PipeLength = Washer.Length;
+      Trigger = Input_2;
+      Apartment = Output_2;
+    }
+    else if(Pipe == 3){
+      Shower.active = true;
+      PipeStart = Shower.Start;
+      PipeLength = Shower.Length;
+      Trigger = Input_3;
+      Apartment = Output_3;
+    }
+    else if(Pipe == 4){
+      Sink.active = true;
+      PipeStart = Sink.Start;
+      PipeLength = Sink.Length;
+      Trigger = Input_4;
+      Apartment = Output_4;
+    }
+
+    CurrentPipe = Pipe;
+  }
+  
+  void Flow(){
+    if(sound == false){
+      Serial.println(CurrentPipe);
+      sound = true;
+    }
+    
+    for(int x = 0; x < StreamPixel; x++){
+      if(x > StreamPixel - (Length - 1) && x <= PipeLength){strip.setPixelColor(PipeStart + x, 0,PipeLeadHue.GreenHue[StreamPixel-x],PipeLeadHue.BlueHue[StreamPixel-x]);} // Leading Trail
+      else if(x <= PipeLength){strip.setPixelColor(PipeStart + x, 0, PipeHue.GreenHue[x - (Length * (x/Length))] + 10, PipeHue.BlueHue[x - (Length * (x/Length))] + 10);} // Flow
+    }
+
+    if(StreamPixel < PipeLength + Length){StreamPixel++;}
+  }
+  
+  void Drain(){
+    StartDraining = true;
+  
+    for(int x = 0; x < Length; x++){
+      if(StreamPixel - x <= PipeLength && StreamPixel - x > 0){strip.setPixelColor(PipeStart + (StreamPixel - x), 0,PipeLeadHue.GreenHue[Length-1-x],PipeLeadHue.BlueHue[Length- 1 - x]);} // Leading Trail
+    }
+
+    for(int x = DrainPixel; x < StreakLength; x++){ //Flow
+      if(x <= PipeLength){strip.setPixelColor(PipeStart + x, 0,PipeHue.GreenHue[x - (Length * (x/Length))] + 10, PipeHue.BlueHue[x - (Length * (x/Length))] + 10);}
+    }
+    
+    for(int x = 0; x < Length; x++){
+      if(DrainPixel - x < 0){break;}
+      else if (DrainPixel - x <= PipeLength){strip.setPixelColor(PipeStart + (DrainPixel-x), 0,PipeLeadHue.GreenHue[x], PipeLeadHue.GreenHue[x]);} // Drain Tail
+    }
+
+    if(StreamPixel <= PipeLength + Length + 1){StreamPixel++;}
+    if(DrainPixel < StreamPixel && StreamPixel > Length){DrainPixel++;}
+    else if(DrainPixel == StreamPixel){ // reset
+      active = false;
+      StartDraining = false;
+      begin = false;
+      PooBegin = false;
+      DrainPixel = 0;
+      StreamPixel = 0;
+      PooPixel = 0;
+      PipeStart = 0;
+      PipeLength = 0;
+      Trigger = 0;
+      CurrentPipe = 0;
+      digitalWrite(Apartment, LOW);
+    }
+
+    if(DrainPixel > Length){ // Turn off Active Pipe
+      if(PipeStart == Toilet.Start){Toilet.active = false;}
+      else if(PipeStart == Washer.Start){Washer.active = false;}
+      else if(PipeStart == Shower.Start){Shower.active = false;}
+      else if(PipeStart == Sink.Start){Sink.active = false;}
+
+      if(sound == true){
+        if(CurrentPipe == 3){Serial.println(5);}
+        sound = false;
+      }
+    } 
+  }
+
+  void Poo(){
+    for(int x = 0; x < StreakLength; x++){
+      if(PooPixel - x < 0){break;}
+      else if(PooPixel - x < PipeLength){strip.setPixelColor(PipeStart + (PooPixel - x),StreakHue[x],StreakHue[x],0);}
+    }
+    if(PooPixel < PipeLength + StreakLength){PooPixel++;}
+    else if(PooBegin = false){
+      SewersBegin = true;
+      PooBegin = true;
+    }
+  }
+
+  void run(){
+    if(begin == false){
+      PipeWait.LastTriggered = CurrentTime;
+      PooWait.LastTriggered = CurrentTime;
+      begin = true;
+    }
+    
+    if(digitalRead(Trigger) == HIGH && StartDraining == false){
+      digitalWrite(Apartment, HIGH);
+      if(CurrentTime >= PipeWait.LastTriggered + PipeWait.Duration){Flow();}
+    }
+
+    else if((digitalRead(Trigger) == LOW || StartDraining == true) && CurrentTime >= PipeWait.LastTriggered + PipeWait.Duration){Drain();}
+
+    if(CurrentTime > PooWait.LastTriggered + PooWait.Duration){Poo();}
+  }
+};
+
+PipeFlow PipeOne;
+PipeFlow PipeTwo;
+PipeFlow PipeThree;
+PipeFlow PipeFour;
+
+
+//Update checks for if the Path for poo has changed(The total path is segemented into 4 chunks, See pg.0 of your notes)
 bool PathThreeUpdate = false;
 bool PathFourUpdate = false;
 
+//The four different base paths the poo can take
 struct PooPaths{
   int Start[4];
   int End[4];
@@ -213,6 +356,8 @@ PooPaths FromSink = {
   {UpperSewerStart + LengthOfUpperSewer, WaterTreatmentStart + LowerSewerCombine, WaterTreatmentEnd - DrainageLength, WaterTreatmentEnd}
 };
 
+
+//Poo Runner
 struct NewPoo{
   bool active;
   int Poo[StreakLength];
@@ -243,7 +388,7 @@ struct NewPoo{
 
   void run(){ 
     for(int x = 0; x < StreakLength; x++){
-      if(Poo[x] != 0){strip.setPixelColor(Poo[x],0,0,0);}
+      if(Poo[x] != 0){strip.setPixelColor(Poo[x],StreakHue[x],StreakHue[x],0);}
     }
     
     for(int x = StreakLength - 1; x > 0; x--){Poo[x] = Poo[x - 1];}
@@ -255,7 +400,7 @@ struct NewPoo{
       Poo[0] = Path.Start[Current];
       EndState = Path.End[Current];
     }
-    else if(Current == 4 && Poo[0] == Poo[StreakLength - 1]){
+    else if(Current == 4 && Poo[StreakLength - 1] == EndState){
       PipePath = 0;
       EndState = 0;
       Current = 0;
@@ -297,8 +442,11 @@ const int RainMultiplyer = 50;
 
 void WaveUpdate(){
   for(int x=0; x < Length; x++){
-    ColorHue[x]= (200/2)+((200/2) * cos(x * (3.14/Length)));
-    WaveHue[x]= (200/2)-((200/2) * sin(x * (3.14/Length)));
+    PipeHue.BlueHue[x] = (200/2)-((200/2) * sin(x * (3.14/Length)));
+    PipeHue.GreenHue[x] = (200/2)-((200/2) * sin(x * (3.14/Length)));
+
+    PipeLeadHue.GreenHue[x] = (200/2)+((200/2) * cos(x * (3.14/Length)));
+    PipeLeadHue.BlueHue[x] = (200/2)+((200/2) * cos(x * (3.14/Length)));
 
     SewerWaveHue.GreenHue[x]= (100/2)-((100/2) * sin(x * (3.14/Length)));
     SewerWaveHue.BlueHue[x]= (200/2)-((200/2) * sin(x * (3.14/Length)));
@@ -315,7 +463,8 @@ void WaveUpdate(){
   FlowOutHue.WhiteHue[0]=0;
   RunoffLeadHue.BlueHue[Length -1] = 0;
   RunoffLeadHue.GreenHue[Length -1] = 0;
-  ColorHue[Length-1] = 0;;
+  PipeLeadHue.GreenHue[Length-1] = 0;
+  PipeLeadHue.BlueHue[Length-1] = 0; 
 
 
   for(int x=0; x < StreakLength; x++){
@@ -363,246 +512,135 @@ void setup() {
   WaveUpdate();
 }
 
-void Toilet(){
+void PipeControl(){
   if(CurrentTime >= PipesFrame.LastTriggered + PipesFrame.Duration){
-    if(digitalRead(Input_1) == HIGH && PipeOne.run == false){
-      digitalWrite(Output_1,HIGH);
+    if(digitalRead(Input_1)==HIGH && PullOne == false && Toilet.active == false){
+      if(PipeOne.active == false){
+        PipeOne.setup(1);
+        PipeOne.active = true;
+      }
+      else if(PipeTwo.active == false){
+        PipeTwo.setup(1);
+        PipeTwo.active = true;
+      }
+      else if(PipeThree.active == false){
+        PipeThree.setup(1);
+        PipeThree.active = true;
+      }
+      else if(PipeFour.active == false){
+        PipeFour.setup(1);
+        PipeFour.active = true;
+      }
 
-      if(PipeOne.start == false){
-        ToiletWait.LastTriggered = CurrentTime;
-        PipeOnePooWait.LastTriggered = CurrentTime;
-        PipeOne.start = true;
-      }
-      else if(CurrentTime >= ToiletWait.LastTriggered + ToiletWait.Duration){
-        digitalWrite(ToiletSound, HIGH);
-        for(int x = 0; x < PipeOne.Stream-PipeOne.Begin; x++){strip.setPixelColor(PipeOne.Begin + x, 0, WaveHue[x -(Length*(x/Length))], 150);}
-        if(PipeOne.Stream <= PipeOne.End){PipeOne.Stream++;}
-      }
+      PullOne = true;
     }
+    else if (digitalRead(Input_1) == LOW && PullOne == true){PullOne = false;}
 
-    else if(PipeOne.start == true && CurrentTime >= ToiletWait.LastTriggered + ToiletWait.Duration){
-      PipeOne.run = true;
-      digitalWrite(ToiletSound, HIGH);
-
-      if(PipeOne.Stream > PipeOne.Begin){
-        for(int x = PipeOne.Pixel; x < PipeOne.Stream; x++){strip.setPixelColor(x, 0, WaveHue[x -(Length*(x/Length))], 150);}
-        if(PipeOne.Stream <= PipeOne.End){PipeOne.Stream++;}
+    if(digitalRead(Input_2)==HIGH && PullTwo == false && Washer.active == false){
+      if(PipeOne.active == false){
+        PipeOne.setup(2);
+        PipeOne.active = true;
+      }
+      else if(PipeTwo.active == false){
+        PipeTwo.setup(2);
+        PipeTwo.active = true;
+      }
+      else if(PipeThree.active == false){
+        PipeThree.setup(2);
+        PipeThree.active = true;
+      }
+      else if(PipeFour.active == false){
+        PipeFour.setup(2);
+        PipeFour.active = true;
       }
 
-      for(int x = 0; x < Length; x++){
-        if(PipeOne.Pixel - x < PipeOne.Begin){break;}
-        else if(PipeOne.Pixel - x <= PipeOne.End){strip.setPixelColor(PipeOne.Pixel - x, 0,ColorHue[x],ColorHue[x]);}
-      }
-      if(PipeOne.Pixel <= PipeOne.End + Length){PipeOne.Pixel++;}
-      else if(PipeOne.Pixel > PipeOne.End + Length){
-        PipeOne.PooPath = false;
-        PipeOne.run = false;
-        PipeOne.start = false;
-        PipeOne.Stream = PipeOne.Begin;
-        PipeOne.Pixel = PipeOne.Begin;
-        PipeOne.Poo = PipeOne.Begin;
-        digitalWrite(Output_1,LOW);
-        digitalWrite(ToiletSound, LOW);
-      }
+      PullTwo = true;
     }
+    else if (digitalRead(Input_2) == LOW && PullTwo == true){PullTwo = false;}
 
-    if(PipeOne.start == true && allActive != true && CurrentTime >= PipeOnePooWait.LastTriggered + PipeOnePooWait.Duration && PipeOne.Pixel < PipeOne.End + StreakLength){
-      for(int x = 0; x < StreakLength; x++){
-        if(PipeOne.Poo - x < PipeOne.Begin){break;}
-        else if(PipeOne.Poo - x <= PipeOne.End){strip.setPixelColor(PipeOne.Poo - x, StreakHue[x], StreakHue[x],0);}
+    if(digitalRead(Input_3)==HIGH && PullThree == false && Shower.active == false){
+      if(PipeOne.active == false){
+        PipeOne.setup(3);
+        PipeOne.active = true;
+      }
+      else if(PipeTwo.active == false){
+        PipeTwo.setup(3);
+        PipeTwo.active = true;
+      }
+      else if(PipeThree.active == false){
+        PipeThree.setup(3);
+        PipeThree.active = true;
+      }
+      else if(PipeFour.active == false){
+        PipeFour.setup(3);
+        PipeFour.active = true;
       }
 
-      if(PipeOne.Poo < PipeOne.End + StreakLength){PipeOne.Poo++;}
+      PullThree = true;
     }
+    else if (digitalRead(Input_3) == LOW && PullThree == true){PullThree = false;}
+    
+
+    if(digitalRead(Input_4)==HIGH && PullFour == false && Sink.active == false){
+      if(PipeOne.active == false){
+        PipeOne.setup(4);
+        PipeOne.active = true;
+      }
+      else if(PipeTwo.active == false){
+        PipeTwo.setup(4);
+        PipeTwo.active = true;
+      }
+      else if(PipeThree.active == false){
+        PipeThree.setup(4);
+        PipeThree.active = true;
+      }
+      else if(PipeFour.active == false){
+        PipeFour.setup(4);
+        PipeFour.active = true;
+      }
+
+      PullFour = true;
+    }
+    else if (digitalRead(Input_4) == LOW && PullFour == true){PullFour = false;}
+
+    if(PipeOne.active == true){PipeOne.run();}
+    if(PipeTwo.active == true){PipeTwo.run();}
+    if(PipeThree.active == true){PipeThree.run();}
+    if(PipeFour.active == true){PipeFour.run();}
   }
 }
 
-void BathTub(){
-  if(CurrentTime >= PipesFrame.LastTriggered + PipesFrame.Duration){
-    if(digitalRead(Input_2) == HIGH && PipeTwo.run == false){
-      digitalWrite(Output_2,HIGH);
-
-      if(PipeTwo.start == false){
-        BathWait.LastTriggered = CurrentTime;
-        PipeTwoPooWait.LastTriggered = CurrentTime;
-        PipeTwo.start = true;
-      }
-      else if(CurrentTime >= BathWait.LastTriggered + BathWait.Duration){
-        //digitalWrite(ShowerSound, HIGH);
-        for(int x = 0; x < PipeTwo.Stream-PipeTwo.Begin; x++){strip.setPixelColor(PipeTwo.Begin + x, 0, WaveHue[x -(Length*(x/Length))], 150);}
-        if(PipeTwo.Stream <= PipeTwo.End){PipeTwo.Stream++;}
-      }
-    }
-
-    else if(PipeTwo.start == true && CurrentTime >= BathWait.LastTriggered + BathWait.Duration){
-      PipeTwo.run = true;
-      //digitalWrite(ShowerSound, LOW);
-      
-      if(PipeTwo.Stream > PipeTwo.Begin){
-        for(int x = PipeTwo.Pixel; x < PipeTwo.Stream; x++){strip.setPixelColor(x, 0, WaveHue[x -(Length*(x/Length))], 150);}
-        if(PipeTwo.Stream <= PipeTwo.End){PipeTwo.Stream++;}
-      }
-
-      for(int x = 0; x < Length; x++){
-        if(PipeTwo.Pixel - x < PipeTwo.Begin){break;}
-        else if(PipeTwo.Pixel - x <= PipeTwo.End){strip.setPixelColor(PipeTwo.Pixel - x, 0,ColorHue[x],ColorHue[x]);}
-      }
-      if(PipeTwo.Pixel <= PipeTwo.End + Length){PipeTwo.Pixel++;}
-      else if(PipeTwo.Pixel > PipeTwo.End + Length){
-        PipeTwo.PooPath = false;
-        PipeTwo.run = false;
-        PipeTwo.start = false;
-        PipeTwo.Poo = PipeTwo.Begin;
-        PipeTwo.Stream = PipeTwo.Begin;
-        PipeTwo.Pixel = PipeTwo.Begin;
-        digitalWrite(Output_2,LOW);
-      }
-    }
-
-    if(PipeTwo.start == true && allActive != true && CurrentTime >= PipeTwoPooWait.LastTriggered + PipeTwoPooWait.Duration && PipeTwo.Pixel < PipeTwo.End + StreakLength){
-      for(int x = 0; x < StreakLength; x++){
-        if(PipeTwo.Poo - x < PipeTwo.Begin){break;}
-        else if(PipeTwo.Poo - x <= PipeTwo.End){strip.setPixelColor(PipeTwo.Poo - x, StreakHue[x], StreakHue[x],0);}
-      }
-
-      if(PipeTwo.Poo < PipeTwo.End + StreakLength){PipeTwo.Poo++;}
-    }
-  } 
-}
-
-void Shower(){
-  if(CurrentTime >= PipesFrame.LastTriggered + PipesFrame.Duration){
-    if(digitalRead(Input_3) == HIGH && PipeThree.run == false){
-      digitalWrite(Output_3,HIGH);
-
-      if(PipeThree.start == false){
-        ShowerWait.LastTriggered = CurrentTime;
-        PipeThreePooWait.LastTriggered = CurrentTime;
-        PipeThree.start = true;
-      }
-      else if(CurrentTime >= ShowerWait.LastTriggered + ShowerWait.Duration){
-        for(int x = 0; x < PipeThree.Stream-PipeThree.Begin; x++){strip.setPixelColor(PipeThree.Begin + x, 0, WaveHue[x -(Length*(x/Length))], 150);}
-        if(PipeThree.Stream <= PipeThree.End){PipeThree.Stream++;}
-      }
-    }
-
-    else if(PipeThree.start == true && CurrentTime >= ShowerWait.LastTriggered + ShowerWait.Duration){
-      PipeThree.run = true;
-
-      if(PipeThree.Stream > PipeThree.Begin){
-        for(int x = PipeThree.Pixel; x < PipeThree.Stream; x++){strip.setPixelColor(x, 0, WaveHue[x -(Length*(x/Length))], 150);}
-        if(PipeThree.Stream <= PipeThree.End){PipeThree.Stream++;}
-      }
-
-      for(int x = 0; x < Length; x++){
-        if(PipeThree.Pixel - x < PipeThree.Begin){break;}
-        else if(PipeThree.Pixel - x <= PipeThree.End){strip.setPixelColor(PipeThree.Pixel - x, 0,ColorHue[x],ColorHue[x]);}
-      }
-      if(PipeThree.Pixel <= PipeThree.End + Length){PipeThree.Pixel++;}
-      else if(PipeThree.Pixel > PipeThree.End + Length){
-        PipeThree.PooPath = false;
-        PipeThree.run = false;
-        PipeThree.start = false;
-        PipeThree.Poo = PipeThree.Begin;
-        PipeThree.Stream = PipeThree.Begin;
-        PipeThree.Pixel = PipeThree.Begin;
-        digitalWrite(Output_3,LOW);
-      }
-    }
-
-    if(PipeThree.start == true && allActive != true && CurrentTime >= PipeThreePooWait.LastTriggered + PipeThreePooWait.Duration && PipeThree.Pixel < PipeThree.End + StreakLength){
-      for(int x = 0; x < StreakLength; x++){
-        if(PipeThree.Poo - x < PipeThree.Begin){break;}
-        else if(PipeThree.Poo - x <= PipeThree.End){strip.setPixelColor(PipeThree.Poo - x, StreakHue[x], StreakHue[x],0);}
-      }
-
-      if(PipeThree.Poo < PipeThree.End + StreakLength){PipeThree.Poo++;}
-    }
-  }
-}
-
-void Sink(){
-  if(CurrentTime >= PipesFrame.LastTriggered + PipesFrame.Duration){
-    if(digitalRead(Input_4) == HIGH && PipeFour.run == false){
-      digitalWrite(Output_4,HIGH);
-
-      if(PipeFour.start == false){
-        SinkWait.LastTriggered = CurrentTime;
-        PipeFourPooWait.LastTriggered = CurrentTime;
-        PipeFour.start = true;
-      }
-      else if(CurrentTime >= SinkWait.LastTriggered + SinkWait.Duration){
-        for(int x = 0; x < PipeFour.Stream-PipeFour.Begin; x++){strip.setPixelColor(PipeFour.Begin + x, 0, WaveHue[x -(Length*(x/Length))], 150);}
-        if(PipeFour.Stream <= PipeFour.End){PipeFour.Stream++;}
-      }
-    }
-
-    else if(PipeFour.start == true && CurrentTime >= SinkWait.LastTriggered + SinkWait.Duration){
-      PipeFour.run = true;
-
-      if(PipeFour.Stream > PipeFour.Begin){
-        for(int x = PipeFour.Pixel; x < PipeFour.Stream; x++){strip.setPixelColor(x, 0, WaveHue[x -(Length*(x/Length))], 150);}
-        if(PipeFour.Stream <= PipeFour.End){PipeFour.Stream++;}
-      }
-
-      for(int x = 0; x < Length; x++){
-        if(PipeFour.Pixel - x < PipeFour.Begin){break;}
-        else if(PipeFour.Pixel - x <= PipeFour.End){strip.setPixelColor(PipeFour.Pixel - x, 0,ColorHue[x],ColorHue[x]);}
-      }
-      if(PipeFour.Pixel <= PipeFour.End + Length){PipeFour.Pixel++;}
-      else if(PipeFour.Pixel > PipeFour.End + Length){
-        PipeFour.PooPath = false;
-        PipeFour.run = false;
-        PipeFour.start = false;
-        PipeFour.Poo = PipeFour.Begin;
-        PipeFour.Stream = PipeFour.Begin;
-        PipeFour.Pixel = PipeFour.Begin;
-        digitalWrite(Output_4,LOW);
-      }
-    }
-
-    if(PipeFour.start == true && allActive != true && CurrentTime >= PipeFourPooWait.LastTriggered + PipeFourPooWait.Duration && PipeFour.Pixel < PipeFour.End +  StreakLength){
-      for(int x = 0; x < StreakLength; x++){
-        if(PipeFour.Poo - x < PipeFour.Begin){break;}
-        else if(PipeFour.Poo - x <= PipeFour.End){strip.setPixelColor(PipeFour.Poo - x, StreakHue[x], StreakHue[x],0);}
-      }
-
-      if(PipeFour.Poo < PipeFour.End + StreakLength){PipeFour.Poo++;}
-    }
-  }
-}
-
-void Sounds(){
-  if(digitalRead(Input_1) == HIGH && CurrentTime > ToiletWait.LastTriggered + ToiletWait.Duration && ToiletSound == false){
-    Serial.println(1);
-    ToiletSound = true;
-  }
-  else if(digitalRead(Input_1) == LOW && PipeOne.start == false){ToiletSound = false;}
+// void Sounds(){
+//   if(digitalRead(Input_1) == HIGH && CurrentTime > ToiletWait.LastTriggered + ToiletWait.Duration && ToiletSound == false){
+//     Serial.println(1);
+//     ToiletSound = true;
+//   }
+//   else if(digitalRead(Input_1) == LOW && PipeOne.start == false){ToiletSound = false;}
 
 
-  if(digitalRead(Input_2) == HIGH && CurrentTime > BathWait.LastTriggered + BathWait.Duration && WasherSound == false){
-    Serial.println(2);
-    WasherSound = true;
-  }
-  else if(digitalRead(Input_2) == LOW && PipeTwo.start == false){WasherSound = false;}
+//   if(digitalRead(Input_2) == HIGH && CurrentTime > BathWait.LastTriggered + BathWait.Duration && WasherSound == false){
+//     Serial.println(2);
+//     WasherSound = true;
+//   }
+//   else if(digitalRead(Input_2) == LOW && PipeTwo.start == false){WasherSound = false;}
 
 
-  if(digitalRead(Input_3) == HIGH && CurrentTime > ShowerWait.LastTriggered + ShowerWait.Duration && ShowerSound == false && PipeThree.run == false){
-    Serial.println(3);
-    ShowerSound = true;
-  }
-  else if(digitalRead(Input_3) == LOW && ShowerSound == true){
-   Serial.println(5);
-    ShowerSound = false;
-  }
+//   if(digitalRead(Input_3) == HIGH && CurrentTime > ShowerWait.LastTriggered + ShowerWait.Duration && ShowerSound == false && PipeThree.run == false){
+//     Serial.println(3);
+//     ShowerSound = true;
+//   }
+//   else if(digitalRead(Input_3) == LOW && ShowerSound == true){
+//    Serial.println(5);
+//     ShowerSound = false;
+//   }
 
 
-  if(digitalRead(Input_4) == HIGH && CurrentTime > SinkWait.LastTriggered + SinkWait.Duration && SinkSound == false){
-    Serial.println(4);
-    SinkSound = true;
-  }
-  else if(digitalRead(Input_4) == LOW && PipeFour.start == false){SinkSound = false;}
-}
+//   if(digitalRead(Input_4) == HIGH && CurrentTime > SinkWait.LastTriggered + SinkWait.Duration && SinkSound == false){
+//     Serial.println(4);
+//     SinkSound = true;
+//   }
+//   else if(digitalRead(Input_4) == LOW && PipeFour.start == false){SinkSound = false;}
+// }
 
 void Rain(){ // Could be cleaned more
   if(digitalRead(Rain_Input)== HIGH && RainPush == false){ // Rope Pull check that'll add up to three and cut off at a certain point
@@ -806,45 +844,92 @@ void LowerSewers(){ // Works as intended but open for tweaking
   }
 }
 
-void NewPoo(){
-  if(PipeOne.Poo >= PipeOne.End && PipeOne.PooPath == false){
-    if(PooOne.active == false){PooOne.setup(1);}
-    else if(PooTwo.active == false){PooTwo.setup(1);}
-    else if(PooThree.active == false){PooThree.setup(1);}
-    else if(PooFour.active == false){PooFour.setup(1);}
+void PooControl(){
+  if(CurrentTime == PooFrame.Duration + PooFrame.LastTriggered){
+    PathUpdate();
 
-    PipeOne.PooPath = true;
+    if(PipeOne.SewersBegin == true){
+      if(PooOne.active == false){PooOne.setup(PipeOne.CurrentPipe);}
+      else if(PooTwo.active == false){PooTwo.setup(PipeOne.CurrentPipe);}
+      else if(PooThree.active == false){PooThree.setup(PipeOne.CurrentPipe);}
+      else if(PooFour.active == false){PooFour.setup(PipeOne.CurrentPipe);}
+
+      PipeOne.SewersBegin = false;
+    }
+
+    if(PipeTwo.SewersBegin == true){
+      if(PooOne.active == false){PooOne.setup(PipeTwo.CurrentPipe);}
+      else if(PooTwo.active == false){PooTwo.setup(PipeTwo.CurrentPipe);}
+      else if(PooThree.active == false){PooThree.setup(PipeTwo.CurrentPipe);}
+      else if(PooFour.active == false){PooFour.setup(PipeTwo.CurrentPipe);}
+
+      PipeTwo.SewersBegin = false;
+    }
+
+    if(PipeThree.SewersBegin == true){
+      if(PooOne.active == false){PooOne.setup(PipeThree.CurrentPipe);}
+      else if(PooTwo.active == false){PooTwo.setup(PipeThree.CurrentPipe);}
+      else if(PooThree.active == false){PooThree.setup(PipeThree.CurrentPipe);}
+      else if(PooFour.active == false){PooFour.setup(PipeThree.CurrentPipe);}
+
+      PipeThree.SewersBegin = false;
+    }
+
+    if(PipeFour.SewersBegin == true){
+      if(PooOne.active == false){PooOne.setup(PipeFour.CurrentPipe);}
+      else if(PooTwo.active == false){PooTwo.setup(PipeFour.CurrentPipe);}
+      else if(PooThree.active == false){PooThree.setup(PipeFour.CurrentPipe);}
+      else if(PooFour.active == false){PooFour.setup(PipeFour.CurrentPipe);}
+
+      PipeFour.SewersBegin = false;
+    }
+
+    if(PooOne.active == true){PooOne.run();}
+    else if(PooTwo.active == true){PooTwo.run();}
+    else if(PooThree.active == true){PooThree.run();}
+    else if(PooFour.active == true){PooFour.run();}
   }
-  if(PipeTwo.Poo >= PipeTwo.End && PipeTwo.PooPath == false){
-    if(PooOne.active == false){PooOne.setup(2);}
-    else if(PooTwo.active == false){PooTwo.setup(2);}
-    else if(PooThree.active == false){PooThree.setup(2);}
-    else if(PooFour.active == false){PooFour.setup(2);}
-
-    PipeTwo.PooPath = true;
-  }
-  if(PipeThree.Poo >= PipeThree.End && PipeThree.PooPath == false){
-    if(PooOne.active == false){PooOne.setup(3);}
-    else if(PooTwo.active == false){PooTwo.setup(3);}
-    else if(PooThree.active == false){PooThree.setup(3);}
-    else if(PooFour.active == false){PooFour.setup(3);}
-
-    PipeThree.PooPath = true;
-  }
-  if(PipeFour.Poo >= PipeFour.End && PipeFour.PooPath == false){
-    if(PooOne.active == false){PooOne.setup(4);}
-    else if(PooTwo.active == false){PooTwo.setup(4);}
-    else if(PooThree.active == false){PooThree.setup(4);}
-    else if(PooFour.active == false){PooFour.setup(4);}
-
-    PipeFour.PooPath = true;
-  }
-
-  if(PooOne.active == true){PooOne.run();}
-  if(PooTwo.active == true){PooTwo.run();}
-  if(PooThree.active == true){PooThree.run();}
-  if(PooFour.active == true){PooFour.run();}
 }
+
+// void NewPoo(){
+//   if(PipeOne.Poo >= PipeOne.End && PipeOne.PooPath == false){
+//     if(PooOne.active == false){PooOne.setup(1);}
+//     else if(PooTwo.active == false){PooTwo.setup(1);}
+//     else if(PooThree.active == false){PooThree.setup(1);}
+//     else if(PooFour.active == false){PooFour.setup(1);}
+
+//     PipeOne.PooPath = true;
+//   }
+//   if(PipeTwo.Poo >= PipeTwo.End && PipeTwo.PooPath == false){
+//     if(PooOne.active == false){PooOne.setup(2);}
+//     else if(PooTwo.active == false){PooTwo.setup(2);}
+//     else if(PooThree.active == false){PooThree.setup(2);}
+//     else if(PooFour.active == false){PooFour.setup(2);}
+
+//     PipeTwo.PooPath = true;
+//   }
+//   if(PipeThree.Poo >= PipeThree.End && PipeThree.PooPath == false){
+//     if(PooOne.active == false){PooOne.setup(3);}
+//     else if(PooTwo.active == false){PooTwo.setup(3);}
+//     else if(PooThree.active == false){PooThree.setup(3);}
+//     else if(PooFour.active == false){PooFour.setup(3);}
+
+//     PipeThree.PooPath = true;
+//   }
+//   if(PipeFour.Poo >= PipeFour.End && PipeFour.PooPath == false){
+//     if(PooOne.active == false){PooOne.setup(4);}
+//     else if(PooTwo.active == false){PooTwo.setup(4);}
+//     else if(PooThree.active == false){PooThree.setup(4);}
+//     else if(PooFour.active == false){PooFour.setup(4);}
+
+//     PipeFour.PooPath = true;
+//   }
+
+//   if(PooOne.active == true){PooOne.run();}
+//   if(PooTwo.active == true){PooTwo.run();}
+//   if(PooThree.active == true){PooThree.run();}
+//   if(PooFour.active == true){PooFour.run();}
+// }
 
 void PathUpdate(){
   if(StormLevel == 3){
@@ -1322,10 +1407,9 @@ void loop() {
   //Poo();
   //UpperSewers();
   //LowerSewers();
-  Toilet();
-  BathTub();
-  Shower();
-  Sink();
+  PipeControl();
+  PooControl();
+
 
   if(CurrentTime  >= RainFrame.Duration + RainFrame.LastTriggered){
    //Serial.println(StormLevel);
@@ -1410,13 +1494,19 @@ void loop() {
     SewersFrame.LastTriggered = CurrentTime;
   }
 
-  if(CurrentTime  >= PipesFrame.Duration + PipesFrame.LastTriggered){
-    Sounds();
-
-    LastPixel = WaveHue[Length-1];
-    for(int x = Length; x >= 0; x--){
-      if(x!=0){WaveHue[x]=WaveHue[x-1];} 
-      else {WaveHue[x]=LastPixel;}
+ if(CurrentTime >= PipesFrame.LastTriggered + PipesFrame.Duration){
+    PipeHue.LastBlue = PipeHue.BlueHue[Length-1];
+    PipeHue.LastGreen = PipeHue.GreenHue[Length-1];
+    
+    for(int x = Length -1; x >= 0; x--){
+      if(x!= 0){
+        PipeHue.BlueHue[x] = PipeHue.BlueHue[x-1];
+        PipeHue.GreenHue[x] = PipeHue.GreenHue[x-1];
+      }
+      else{
+        PipeHue.BlueHue[x] = PipeHue.LastBlue;
+        PipeHue.GreenHue[x] = PipeHue.LastGreen;
+      }
     }
     PipesFrame.LastTriggered = CurrentTime;
   }
