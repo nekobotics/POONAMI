@@ -21,7 +21,7 @@
 #define Rain_Output3 25 //
 
 #define Pixel_Pin 22 //
-#define Num_Pixels 261
+#define Num_Pixels 429
 #define BRIGHTNESS 255
 
 Adafruit_NeoPixel strip(Num_Pixels, Pixel_Pin, NEO_GRBW + NEO_KHZ800);
@@ -157,9 +157,9 @@ struct StaticColor {
 StaticColor RunoffLeadHue;
 StaticColor RunoffLeadHueTest;
 
-int WaveHue[Length];
+// int WaveHue[Length];
 
-int ColorHue[Length];
+// int ColorHue[Length];
 
 int StreakHue[StreakLength];
 
@@ -490,7 +490,7 @@ void setup() {
   pinMode(Output_1,OUTPUT);
   pinMode(Output_2,OUTPUT);
   pinMode(Output_3,OUTPUT);
-  pinMode(Output_4,OUTPUT);
+  //pinMode(Output_4,OUTPUT);
 
   // pinMode(ShowerSound,OUTPUT);
   // pinMode(ToiletSound,OUTPUT);
@@ -502,7 +502,7 @@ void setup() {
   pinMode(Input_1,INPUT);
   pinMode(Input_2,INPUT);
   pinMode(Input_3,INPUT);
-  //pinMode(Input_4,INPUT);
+  pinMode(Input_4,INPUT);
 
   pinMode(Rain_Input,INPUT);
 
