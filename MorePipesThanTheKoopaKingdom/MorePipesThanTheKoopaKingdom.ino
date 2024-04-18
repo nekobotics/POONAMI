@@ -92,6 +92,7 @@ struct PipePaths{
   int PipeStart[3];
   int PipeLength[3];
   int Trigger;
+  bool active;
 };
 
 PipePaths Toilet = {{0,86,169}, {18,24,29}, Input_1};
@@ -118,6 +119,7 @@ struct Pipes{
     if(Pipe == 1){
       CurrentPipe = Pipe;
       Trigger = Toilet.Trigger;
+      Toilet.active = true;
       for(int x= 0; x < 3; x++){
         PipeStart[x] = Toilet.PipeStart[x];
         PipeLength[x] = Toilet.PipeLength[x];
@@ -127,6 +129,7 @@ struct Pipes{
     else if(Pipe == 2){
       CurrentPipe = Pipe;
       Trigger = Washer.Trigger;
+      Washer.active = true;
       for(int x= 0; x < 3; x++){
         PipeStart[x] = Washer.PipeStart[x];
         PipeLength[x] = Washer.PipeLength[x];
@@ -136,6 +139,7 @@ struct Pipes{
     else if(Pipe == 3){
       CurrentPipe = Pipe;
       Trigger = Shower.Trigger;
+      Shower.active = true;
       for(int x= 0; x < 3; x++){
         PipeStart[x] = Shower.PipeStart[x];
         PipeLength[x] = Shower.PipeLength[x];
@@ -145,6 +149,7 @@ struct Pipes{
     else if(Pipe == 4){
       CurrentPipe = Pipe;
       Trigger = Sink.Trigger;
+      Sink.active = true;
       for(int x= 0; x < 3; x++){
         PipeStart[x] = Sink.PipeStart[x];
         PipeLength[x] = Sink.PipeLength[x];
@@ -158,7 +163,7 @@ struct Pipes{
     for(int x = 0; x < 3; x++){
       if(PipeLength[x] != 0){
         for(int i = 0; i < Lead[x]; i++){
-          if(i > Lead[x] - Length && i <= PipeLength[x]){strip.setPixelColor(PipeStart[x] + i, 0,PipeLeadHue.GreenHue[Lead[x]-i],PipeLeadHue.BlueHue[Lead[x]-i]);}
+          if(i > Lead[x] - Length && i <= PipeLength[x]){strip.setPixelColor(PipeStart[x] + i, 0,PipeLeadHue.GreenHue[Length-(Lead[x] -i)],PipeLeadHue.BlueHue[Length-(Lead[x] -i)]);}
           else if(i <= PipeLength[x]){strip.setPixelColor(PipeStart[x] + i, 0, PipeHue.GreenHue[i - (Length * (i/Length))] + 10, PipeHue.BlueHue[i - (Length * (i/Length))] + 10);}
         }
         
@@ -173,8 +178,7 @@ struct Pipes{
         //Lead Head
         if(Lead[x] < PipeLength[x] + Length){
           for(int i = 0; i < Length; i++){
-            if(Lead[x] - i < 0){break;}
-            else if(Lead[x] - i <= PipeLength[x]){strip.setPixelColor(PipeStart[x] + i, 0,PipeLeadHue.GreenHue[Lag[x]-i],PipeLeadHue.BlueHue[Lag[x]-i]);}
+            if(Lead[x] - i <= PipeLength[x] && Lead[x] - i >= 0){strip.setPixelColor(PipeStart[x] + (Lead[x] - i), 0,PipeLeadHue.GreenHue[Length-i-1],PipeLeadHue.BlueHue[Length-i-1]);}
           }
           Lead[x]++;
         }
@@ -190,8 +194,6 @@ struct Pipes{
           else if (Lag[x] - i <= PipeLength[x]){strip.setPixelColor(PipeStart[x] + (Lag[x]-i), 0,PipeLeadHue.GreenHue[i], PipeLeadHue.GreenHue[i]);}
         }
 
-        // Serial.println(Lag[0]);
-        // Serial.println(PipeLength[0]);
 
         if(Lead[x] > Length && Lag[x] - Length != PipeLength[x]){Lag[x]++;}
         
@@ -204,17 +206,29 @@ struct Pipes{
           // memset(Lead,0,sizeof(Lead));
           // memset(PipeLength,0,sizeof(PipeLength));
           // memset(PipeStart,0,sizeof(PipeStart));
-          // Serial.print("Reset:");
-          // Serial.println(x);
         }
 
-        if(Lag[0] + Lag[1] + Lag[2] == 0){
+        if(Lead[0] + Lead[1] + Lead[2] == 0){
           CordRelease = false;
           active = false;
+          begin = false;
         }
 
 
-        if(Lag[x] > Length){begin = false;}
+        if(Lag[0] > Length){
+          if(CurrentPipe == 1){
+            Toilet.active = false;
+          }
+          else if (CurrentPipe == 2){
+            Washer.active = false;
+          }
+          else if (CurrentPipe == 3){
+            Shower.active = false;
+          }
+          else if (CurrentPipe == 4){
+            Sink.active = false;
+          }
+        }
       }
     }
   }
@@ -226,12 +240,12 @@ struct Pipes{
       begin = true;
     }
 
-    if(CurrentTime >= PipesFrame.Duration + PipesFrame.LastTriggered && CurrentTime >= PipeWait.Duration + PipeWait.LastTriggered){
+    if(CurrentTime >= PipeWait.Duration + PipeWait.LastTriggered && CurrentTime >= PipesFrame.Duration + PipesFrame.LastTriggered){
       if(digitalRead(Trigger) == HIGH && CordRelease == false){
         Flow();
       }
 
-      else {
+      else{
         if(CordRelease == false){
           CordRelease = true;
           if(CurrentPipe == 3){Serial.println(5);}
@@ -279,8 +293,7 @@ void setup() {
 }
 
 void PipesRun(){
-  if(digitalRead(Input_1) == HIGH && PullOne == false){
-    Serial.println("Toilet");
+  if(digitalRead(Input_1) == HIGH && PullOne == false && Toilet.active == false){
     PullOne = true;
     for(int x = 0; x < NumPipes; x++){
       if(Pipes[x].active == false){
@@ -292,7 +305,7 @@ void PipesRun(){
   else if(digitalRead(Input_1) == LOW && PullOne == true){PullOne = false;}
 
 
-  if(digitalRead(Input_2) == HIGH && PullTwo == false){
+  if(digitalRead(Input_2) == HIGH && PullTwo == false && Washer.active == false){
     PullTwo = true;
     for(int x = 0; x < NumPipes; x++){
       if(Pipes[x].active == false){
@@ -304,7 +317,7 @@ void PipesRun(){
   else if(digitalRead(Input_2) == LOW && PullTwo == true){PullTwo = false;}
 
 
-  if(digitalRead(Input_3) == HIGH && PullThree == false){
+  if(digitalRead(Input_3) == HIGH && PullThree == false && Shower.active == false){
     PullThree = true;
     for(int x = 0; x < NumPipes; x++){
       if(Pipes[x].active == false){
@@ -316,7 +329,7 @@ void PipesRun(){
   else if(digitalRead(Input_3) == LOW && PullThree == true){PullThree = false;}
 
 
-  if(digitalRead(Input_4) == HIGH && PullFour == false){
+  if(digitalRead(Input_4) == HIGH && PullFour == false && Sink.active == false){
     PullFour = true;
     for(int x = 0; x < NumPipes; x++){
       if(Pipes[x].active == false){
@@ -327,11 +340,16 @@ void PipesRun(){
   }
   else if(digitalRead(Input_4) == LOW && PullFour == true){PullFour = false;}
 
-  //if(Pipes[0].active == true){Pipes[0].Run();}
+  if(CurrentTime >= PipesFrame.Duration + PipesFrame.LastTriggered){
+    // if(Pipes[0].active == true){Pipes[0].Run();}
+    // if(Pipes[1].active == true){Pipes[1].Run();}
+    // if(Pipes[2].active == true){Pipes[2].Run();}
+    // if(Pipes[3].active == true){Pipes[3].Run();}
 
-  for(int x=0; x < NumPipes; x++){
-    if(Pipes[x].active == true){Pipes[x].Run();}
-  }
+    for(int x=0; x < NumPipes; x++){
+      if(Pipes[x].active == true){Pipes[x].Run();}
+    }
+ }
 }
 
 void loop() {
