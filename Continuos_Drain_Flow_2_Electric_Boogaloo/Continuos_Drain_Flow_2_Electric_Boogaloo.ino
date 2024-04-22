@@ -153,7 +153,7 @@ struct StaticColor {
   int BlueHue[Length];
 };
 
- StaticColor PipeLeadHue;
+StaticColor PipeLeadHue;
 StaticColor RunoffLeadHue;
 StaticColor RunoffLeadHueTest;
 
