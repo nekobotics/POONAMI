@@ -94,10 +94,10 @@ StaticColor RunoffLeadHueTest;
 int StreakHue[StreakLength];
 
 //Upper Sewer Lengths:
-  const int LeftUpperSewerStart = 264;
+  const int LeftUpperSewerStart = 263;
   const int LeftUpperSewerEnd = 293;
   const int RightUpperSewerStart = 234;
-  const int RightUpperSewerEnd = 263;
+  const int RightUpperSewerEnd = 262;
 //
 
 //Lower Sewer Lengths:
@@ -247,7 +247,7 @@ struct Pipes{
   int Lag[3];
   int PooPath[3][StreakLength];
   Time PipeWait = {0,50};
-  Time PooWait = {0,60};
+  Time PooWait = {0,70};
 
 
   void Setup(int Pipe){
@@ -338,14 +338,10 @@ struct Pipes{
           PipeLength[x] = 0;
           PipeStart[x] = 0; 
           for(int i = 0; i < StreakLength; i++){PooPath[x][i]=0;}
-
-          // memset(Lag,0,sizeof(Lag));
-          // memset(Lead,0,sizeof(Lead));
-          // memset(PipeLength,0,sizeof(PipeLength));
-          // memset(PipeStart,0,sizeof(PipeStart));
         }
 
         if(Lead[0] + Lead[1] + Lead[2] == 0){
+          for(int x=0; x < 3; x++){PooTriggered[x] = false;}
           CordRelease = false;
           active = false;
           begin = false;
@@ -379,6 +375,7 @@ struct Pipes{
           for(int i = 0; i < NumPoos; i++){
             if(Poo[i].active == false){
               Poo[i].Update(CurrentPipe,x,2);
+              PooTriggered[x] = true;
               break;
             }
           }
@@ -425,245 +422,6 @@ bool RunoffDrain = false;
 float RunoffFade = 0;
 bool RunoffStart = false;
 
-// Rain Variables
-// bool RainOn = false;
-// int StormLevel = 0;
-// int ProjectedStormLevel = 0;
-// bool RainPush = false;
-// bool Raining = false;
-
-// struct PooPaths{
-//   int Start[5];
-//   int End[5];
-//   int PipeType;
-// };
-
-// PooPaths ToiletPoo[3] = {
-//   {{Toilet.PipeStart[0], LeftUpperSewerStart + 4, OceanDrainStart, StageTwoStart, StageThreeStart},{Toilet.PipeStart[0] + Toilet.PipeLength[0], LeftUpperSewerEnd, OceanDrainStart + SewerCombineLength, StageTwoEnd, StageThreeEnd},1},
-//   {{Toilet.PipeStart[1], LeftUpperSewerStart + 25, OceanDrainStart, StageTwoStart, StageThreeStart},{Toilet.PipeStart[1] + Toilet.PipeLength[1], LeftUpperSewerEnd, OceanDrainStart + SewerCombineLength, StageTwoEnd, StageThreeEnd},1},
-//   {{Toilet.PipeStart[2], RightUpperSewerStart + 9, WaterTreatmentStart, StageTwoStart, StageThreeStart},{Toilet.PipeStart[2] + Toilet.PipeLength[2], RightUpperSewerEnd, WaterTreatmentStart + SewerCombineLength, StageTwoEnd, StageThreeEnd},1}
-// };
-// PooPaths WasherPoo[2] = {
-//   {{Washer.PipeStart[0], LeftUpperSewerStart + 12, OceanDrainStart, StageTwoStart, StageThreeStart},{Washer.PipeStart[0] + Washer.PipeLength[0], LeftUpperSewerEnd, OceanDrainStart + SewerCombineLength, StageTwoEnd, StageThreeEnd},2},
-//   {{Washer.PipeStart[1], RightUpperSewerStart + 26, WaterTreatmentStart, StageTwoStart, StageThreeStart},{Washer.PipeStart[1] + Washer.PipeLength[1], RightUpperSewerEnd, WaterTreatmentStart + SewerCombineLength, StageTwoEnd, StageThreeEnd},2}
-// };
-// PooPaths ShowerPoo[3] = {
-//   {{Shower.PipeStart[0], LeftUpperSewerStart + 24, OceanDrainStart, StageTwoStart, StageThreeStart},{Shower.PipeStart[0] + Shower.PipeLength[0], LeftUpperSewerEnd, OceanDrainStart + SewerCombineLength, StageTwoEnd, StageThreeEnd},3},
-//   {{Shower.PipeStart[1], LeftUpperSewerStart + 26, OceanDrainStart, StageTwoStart, StageThreeStart},{Shower.PipeStart[1] + Shower.PipeLength[1], LeftUpperSewerEnd, OceanDrainStart + SewerCombineLength, StageTwoEnd, StageThreeEnd},3},
-//   {{Shower.PipeStart[2], RightUpperSewerStart + 2, WaterTreatmentStart, StageTwoStart, StageThreeStart},{Shower.PipeStart[2] + Shower.PipeLength[2], RightUpperSewerEnd, WaterTreatmentStart + SewerCombineLength, StageTwoEnd, StageThreeEnd},3}
-// };
-// PooPaths SinkPoo[3] = {
-//   {{Sink.PipeStart[0], LeftUpperSewerStart + 5, OceanDrainStart, StageTwoStart, StageThreeStart},{Sink.PipeStart[0] + Sink.PipeLength[0], LeftUpperSewerEnd, OceanDrainStart + SewerCombineLength, StageTwoEnd, StageThreeEnd},4},
-//   {{Sink.PipeStart[1], RightUpperSewerStart + 27, WaterTreatmentStart, StageTwoStart, StageThreeStart},{Sink.PipeStart[1] + Sink.PipeLength[1], RightUpperSewerEnd, WaterTreatmentStart + SewerCombineLength, StageTwoEnd, StageThreeEnd},4},
-//   {{Sink.PipeStart[2], RightUpperSewerStart + 14, WaterTreatmentStart, StageTwoStart, StageThreeStart} ,{Sink.PipeStart[2] + Sink.PipeLength[2], RightUpperSewerEnd, WaterTreatmentStart + SewerCombineLength, StageTwoEnd, StageThreeEnd},4}
-// };
-
-//const int NumPoos = 4;
-
-// struct PooControls{
-//   int Poo[3][StreakLength];
-//   int Start[3][5];
-//   int End[3][5];
-//   int CurrentPath[3];
-//   bool active[3];
-//   bool Running;
-//   bool begin;
-//   Time PooWait = {0,600};
-//   Time PooFrame[3];
-//   int CurrentPoo;
-
-//   void Setup(int PooType){
-//     Running = true;
-//     CurrentPoo = PooType;
-
-//     if(PooType == 1){
-//       for(int x = 0; x < 3; x++){
-//         for(int i = 0; i < 5; i++){
-//           Start[x][i] = ToiletPoo[x].Start[i];
-//           End[x][i] = ToiletPoo[x].End[i];
-//         }
-//         active[x] = true;
-//         Poo[x][0] = Start[x][0];
-//       }
-//     }
-
-//     else if(PooType == 2){
-//       for(int x = 0; x < 2; x++){
-//         for(int i = 0; i < 5; i++){
-//           Start[x][i] = WasherPoo[x].Start[i];
-//           End[x][i] = WasherPoo[x].End[i];
-//         }
-//         active[x] = true;
-//         Poo[x][0] = Start[x][0];
-//       }
-//     }
-
-//     else if(PooType == 3){
-//       for(int x = 0; x < 3; x++){
-//         for(int i = 0; i < 5; i++){
-//           Start[x][i] = ShowerPoo[x].Start[i];
-//           End[x][i] = ShowerPoo[x].End[i];
-//         }
-//         active[x] = true;
-//         Poo[x][0] = Start[x][0];
-//       }
-//     }
-    
-//     else if(PooType == 4){
-//       for(int x = 0; x < 3; x++){
-//         for(int i = 0; i < 5; i++){
-//           Start[x][i] = SinkPoo[x].Start[i];
-//           End[x][i] = SinkPoo[x].End[i];
-//         }
-//         active[x] = true;
-//         Poo[x][0] = Start[x][0];
-//       }
-//     }
-
-//   }
-
-//   // void update(int CurrentPoo, int CurrentPhase){
-//   //   if(CurrentPoo == 1){
-//   //     if(End[CurrentPoo][CurrentPhase] != ToiletPoo[CurrentPoo].End[CurrentPhase]){
-//   //       for(int x = 0; x < 5; x++){End[CurrentPoo][x] = ToiletPoo[CurrentPoo].End[x];}
-//   //     }
-//   //   }
-//   //   else if(CurrentPoo == 2){
-//   //     if(End[CurrentPoo][CurrentPhase] != WasherPoo[CurrentPoo].End[CurrentPhase]){
-//   //       for(int x = 0; x < 5; x++){End[CurrentPoo][x] = WasherPoo[CurrentPoo].End[x];}
-//   //     }
-//   //   }
-//   //   else if(CurrentPoo == 3){
-//   //     if(End[CurrentPoo][CurrentPhase] != ShowerPoo[CurrentPoo].End[CurrentPhase]){
-//   //       for(int x = 0; x < 5; x++){End[CurrentPoo][x] = ShowerPoo[CurrentPoo].End[x];}
-//   //     }
-//   //   }
-//   //   else if(CurrentPoo == 4){
-//   //     if(End[CurrentPoo][CurrentPhase] != SinkPoo[CurrentPoo].End[CurrentPhase]){
-//   //       for(int x = 0; x < 5; x++){End[CurrentPoo][x] = SinkPoo[CurrentPoo].End[x];}
-//   //     }
-//   //   }
-//   // }
-
-//   void Flow(){
-//     for(int x = 0; x < 3; x++){
-//       if(CurrentPath[x] == 0){PooFrame[x].Duration = PipesFrame.Duration;}
-//       else{PooFrame[x].Duration = SewersFrame.Duration;}
-
-//       if(active[x] == true && CurrentTime >= PooFrame[x].LastTriggered + PooFrame[x].Duration){
-
-//         for(int i=0; i < StreakLength; i++){
-//           strip.setPixelColor(Poo[x][i],StreakHue[i],StreakHue[i],0);
-//         }
-
-//         for(int i = StreakLength - 1; i > 0; i--){
-//           Poo[x][i] = Poo[x][i-1];
-//         }
-        
-//         if(Poo[x][0] < End[x][CurrentPath[x]]){
-//           Poo[x][0]++;
-//         }
-//         else{
-//           if(CurrentPath[x] < 4){
-//             CurrentPath[x]++;
-//             Poo[x][0] = Start[x][CurrentPath[x]];
-//           }
-
-//           if(CurrentPath[x] == 4 && Poo[x][StreakLength-1] == End[x][4]){
-//             active[x] = false;
-//             CurrentPath[x] = 0;
-//             for (int i = 0; i < StreakLength; i++){Poo[x][i] = 0;}
-//             for(int i = 0; i < 5; i++){
-//               Start[x][i] = 0;
-//               End[x][i] = 0;
-//               }
-//           }
-//         }
-//       }
-//     }
-    
-
-//     if(Poo[0][0] + Poo[1][0] + Poo[2][0] == 0){
-//       Running = false;
-//       begin = false;
-//     }
-//   }
-
-//   void Run(){
-//     if(begin == false){
-//       PooWait.LastTriggered = CurrentTime;
-//       begin = true;
-//     }
-
-//     if(CurrentTime >= PooWait.LastTriggered + PooWait.Duration){
-//       Flow();
-//     }
-
-//   }
-// };
-
-// struct PooControls{
-//   int Poo[StreakLength];
-//   int Start;
-//   int End;
-//   int CurrentPath;
-//   int CurrentPoo;
-//   bool active;
-
-//   void Update(int PooNumber, PathNumber){
-//     active = true;
-//     CurrentPoo = PooNumber;
-
-//     if(PooType == 1){
-//       Start = ToiletPoo[CurrentPoo].Start[CurrentPath];
-//       End = ToiletPoo[CurrentPoo].End[CurrentPath];
-//       Poo[0] = Start;
-//     }
-
-//     else if(PooType == 2){
-//       Start = WasherPoo[CurrentPoo].Start[CurrentPath];
-//       End = WasherPoo[CurrentPoo].End[CurrentPath];
-//       Poo[0] = Start;
-//     }
-
-//     else if(PooType == 3){
-//       Start = ShowerPoo[CurrentPoo].Start[CurrentPath];
-//       End = ShowerPoo[CurrentPoo].End[CurrentPath];
-//       Poo[0] = Start;
-//     }
-    
-//     else if(PooType == 4){
-//       Start = SinkPoo[CurrentPoo].Start[CurrentPath];
-//       End = SinkPoo[CurrentPoo].End[CurrentPath];
-//       Poo[0] = Start;
-//     }
-//   }
-
-//   void Run(){
-//     for(int i=0; i < StreakLength; i++){strip.setPixelColor(Poo[i],StreakHue[i],StreakHue[i],0);}
-
-//     for(int i = StreakLength - 1; i > 0; i--){Poo[i] = Poo[i-1];}
-    
-//     if(Poo[0] < End){Poo[0]++;}
-//     else{
-//       if(CurrentPath < 4){
-//         CurrentPath++;
-//         Update(CurrentPoo, CurrentPath);
-//       }
-
-//       else if(CurrentPath[x] == 4 && Poo[StreakLength-1] == End){
-//         active[x] = false;
-//         CurrentPath[x] = 0;
-//         for (int i = 0; i < StreakLength; i++){Poo[x][i] = 0;}
-//         for(int i = 0; i < 5; i++){
-//           Start[x][i] = 0;
-//           End[x][i] = 0;
-//           }
-//       }
-//     }
-//   }
-// };
-//PooControls Poo[NumPoos];
 
 
 //______________________________________________________________________//
@@ -672,11 +430,14 @@ void WaveUpdate(){
     PipeHue.BlueHue[x] = (200/2)-((200/2) * sin(x * (3.14/Length)));
     PipeHue.GreenHue[x] = (200/2)-((200/2) * sin(x * (3.14/Length)));
 
-    SewerWaveHue.GreenHue[x]= (100/2)-((100/2) * sin(x * (3.14/Length)));
-    SewerWaveHue.BlueHue[x]= (200/2)-((200/2) * sin(x * (3.14/Length)));
+    SewerWaveHue.GreenHue[x]= (150/2)-((150/2) * sin(x * (3.14/Length)));
+    SewerWaveHue.BlueHue[x]= (254/2)-((254/2) * sin(x * (3.14/Length)));
 
     PipeLeadHue.GreenHue[x] = (200/2)+((200/2) * cos(x * (3.14/Length)));
     PipeLeadHue.BlueHue[x] = (200/2)+((200/2) * cos(x * (3.14/Length)));
+  
+    RunoffLeadHue.BlueHue[x] = (200/2)+((200/2) * cos(x * (3.14/Length)));
+    RunoffLeadHue.GreenHue[x] = (100/2)+((100/2) * cos(x * (3.14/Length)));
 
     FlowOutHue.BlueHue[x] = (100)-(100 * sin(x * (3.14/Length)));
     FlowOutHue.GreenHue[x] = (50)-(50 * sin(x * (3.14/Length)));
@@ -684,6 +445,8 @@ void WaveUpdate(){
   }
 
   FlowOutHue.WhiteHue[0]=0;
+  RunoffLeadHue.BlueHue[Length -1] = 0;
+  RunoffLeadHue.GreenHue[Length -1] = 0;
   PipeLeadHue.GreenHue[Length-1] = 0;
   PipeLeadHue.BlueHue[Length-1] = 0; 
 
@@ -701,10 +464,20 @@ void setup() {
   strip.setBrightness(BRIGHTNESS);
   Serial.begin(9600);
 
+  pinMode(RainLvl1,OUTPUT);
+  pinMode(RainLvl2,OUTPUT);
+  pinMode(RainLvl3,OUTPUT);
+
   pinMode(Input_1,INPUT);
   pinMode(Input_2,INPUT);
   pinMode(Input_3,INPUT);
   pinMode(Input_4,INPUT);
+
+  pinMode(Rain_Input,INPUT);
+
+  pinMode(Rain_Output1,OUTPUT);
+  pinMode(Rain_Output2,OUTPUT);
+  pinMode(Rain_Output3,OUTPUT);
 
   WaveUpdate();
 }
@@ -718,13 +491,6 @@ void PipesRun(){
         break;
       }
     }
-
-    // for(int x = 0; x < NumPoos; x++){
-    //   if(Poo[x].Running == false){
-    //     Poo[x].Setup(1);
-    //     break;
-    //   }
-    // }
   }
   else if(digitalRead(Input_1) == LOW && PullOne == true){PullOne = false;}
 
@@ -737,13 +503,6 @@ void PipesRun(){
         break;
       }
     }
-
-    // for(int x = 0; x < NumPoos; x++){
-    //   if(Poo[x].Running == false){
-    //     Poo[x].Setup(2);
-    //     break;
-    //   }
-    // }
   }
   else if(digitalRead(Input_2) == LOW && PullTwo == true){PullTwo = false;}
 
@@ -756,13 +515,6 @@ void PipesRun(){
         break;
       }
     }
-
-    // for(int x = 0; x < NumPoos; x++){
-    //   if(Poo[x].Running == false){
-    //     Poo[x].Setup(3);
-    //     break;
-    //   }
-    // }
   }
   else if(digitalRead(Input_3) == LOW && PullThree == true){PullThree = false;}
 
@@ -775,13 +527,6 @@ void PipesRun(){
         break;
       }
     }
-
-    // for(int x = 0; x < NumPoos; x++){
-    //   if(Poo[x].Running == false){
-    //     Poo[x].Setup(4);
-    //     break;
-    //   }
-    // }
   }
   else if(digitalRead(Input_4) == LOW && PullFour == true){PullFour = false;}
 
@@ -803,7 +548,7 @@ void Rain(){ // Could be cleaned more
   
 
   if(ProjectedStormLevel == 1 || (ProjectedStormLevel < StormLevel && StormLevel == 1)){
-    Serial.println(1);
+    //Serial.println(1);
     digitalWrite(Rain_Output1, HIGH);
     digitalWrite(Rain_Output2, LOW);
     digitalWrite(Rain_Output3, LOW);
@@ -813,7 +558,7 @@ void Rain(){ // Could be cleaned more
     ProjectedSpeed.Duration = 10;
   }
   else if(ProjectedStormLevel == 2 || (ProjectedStormLevel < StormLevel && StormLevel == 2)){
-    Serial.println(2);
+    //Serial.println(2);
     digitalWrite(Rain_Output1, HIGH);
     digitalWrite(Rain_Output2, HIGH);
     digitalWrite(Rain_Output3, LOW);
@@ -821,10 +566,10 @@ void Rain(){ // Could be cleaned more
     digitalWrite(RainLvl1, HIGH);
     digitalWrite(RainLvl2, HIGH);
 
-    ProjectedSpeed.Duration = 9;
+    ProjectedSpeed.Duration = 8;
   }
   else if (ProjectedStormLevel== 3 || (ProjectedStormLevel < StormLevel && StormLevel == 3)){
-    Serial.println(3);
+    //Serial.println(3);
     digitalWrite(Rain_Output1, HIGH);
     digitalWrite(Rain_Output2, HIGH);
     digitalWrite(Rain_Output3, HIGH);
@@ -833,7 +578,7 @@ void Rain(){ // Could be cleaned more
     digitalWrite(RainLvl1, HIGH);
     digitalWrite(RainLvl2,HIGH);
 
-    ProjectedSpeed.Duration = 7;
+    ProjectedSpeed.Duration = 6;
   }
   else {
     digitalWrite(Rain_Output1, LOW);
@@ -897,10 +642,11 @@ void Sewers(){
 
     for(int x = WaterTreatmentStart; x < WaterTreatmentEnd; x++){strip.setPixelColor(x,0,SewerWaveHue.GreenHue[x-(Length*(x/Length))]+10,10+SewerWaveHue.BlueHue[x-(Length*(x/Length))]);}
 
+
     if(StormLevel < 3){
       for(int x = OceanDrainStart; x < OceanDrainEnd; x++){
         if(x < StageTwoStormStart){strip.setPixelColor(x,0,SewerWaveHue.GreenHue[x-(Length*(x/Length))]+10,10+SewerWaveHue.BlueHue[x-(Length*(x/Length))]);}
-        else if(x > StageTwoStormStart && x < StageTwoStormEnd && StormStart == true){
+        else if(x > StageTwoStormStart && x <= StageTwoStormEnd && StormStart == true){
           if(FlowOutIntensity > 0 && Runoff == RunoffLead){FlowOutIntensity = FlowOutIntensity - .005;}
           else if (FlowOutIntensity == 0){StormStart = false;}
           strip.setPixelColor(x,0,(FlowOutHue.GreenHue[x-(Length*(x/Length))]+10) * FlowOutIntensity, (10+FlowOutHue.BlueHue[x-(Length*(x/Length))])*FlowOutIntensity);
@@ -925,7 +671,7 @@ void Sewers(){
       if(StormStart == false){
         StageOneStorm.LastTriggered = CurrentTime;
         StageTwoStorm.LastTriggered = CurrentTime;
-        StageTwoStorm.LastTriggered = CurrentTime;
+        StageThreeStorm.LastTriggered = CurrentTime;
         StormStart = true;
       }
 
@@ -949,6 +695,13 @@ void Sewers(){
         //if(FlowOutIntensity < 1){FlowOutIntensity = FlowOutIntensity + .01;}
         //FlowOutUpdate();
       }
+      else if(CurrentTime <= StageTwoStorm.Duration + StageTwoStorm.LastTriggered){ // Stage 2: FlashWarning[o] ... it's good and does not use this
+        // if(WarningIntensity < Length && WarningRise == true){WarningIntensity++;}
+        // else if(WarningIntensity == Length){WarningRise = false;}
+        // else if(WarningIntensity > 0){WarningIntensity--;}
+        // else if(WarningIntensity == 0){WarningRise = true;}
+        //Serial.println(WarningIntensity);
+      }
       else if(CurrentTime <= StageThreeStorm.Duration + StageThreeStorm.LastTriggered){ // Stage 3: FlowOut[o] ... it works
         for(int i = 0; i < Length; i++){
           RunoffLead = 0;
@@ -967,12 +720,143 @@ void Sewers(){
   }
 }
 
+void UpdatePaths(){
+  if(FlowOutIntensity == 1){
+    ToiletPoo[0].Start[2] = StageTwoStormStart;
+    ToiletPoo[0].End[2] = StageTwoStormEnd;
+    ToiletPoo[1].Start[2] = StageTwoStormStart;
+    ToiletPoo[1].End[2] = StageTwoStormEnd;
+
+    WasherPoo[0].Start[2] = StageTwoStormStart;
+    WasherPoo[0].End[2] = StageTwoStormEnd;
+
+    ShowerPoo[0].Start[2] = StageTwoStormStart;
+    ShowerPoo[0].End[2] = StageTwoStormEnd;
+    ShowerPoo[1].Start[2] = StageTwoStormStart;
+    ShowerPoo[1].End[2] = StageTwoStormEnd;
+
+    SinkPoo[0].Start[2] = StageTwoStormStart;
+    SinkPoo[0].End[2] = StageTwoStormEnd;
+  }
+  else{
+    ToiletPoo[0].Start[2] = StageTwoStart;
+    ToiletPoo[0].End[2] = StageTwoEnd;
+    ToiletPoo[1].Start[2] = StageTwoStart;
+    ToiletPoo[1].End[2] = StageTwoEnd;
+
+    WasherPoo[0].Start[2] = StageTwoStart;
+    WasherPoo[0].End[2] = StageTwoEnd;
+
+    ShowerPoo[0].Start[2] = StageTwoStart;
+    ShowerPoo[0].End[2] = StageTwoEnd;
+    ShowerPoo[1].Start[2] = StageTwoStart;
+    ShowerPoo[1].End[2] = StageTwoEnd;
+
+    SinkPoo[0].Start[2] = StageTwoStart;
+    SinkPoo[0].End[2] = StageTwoEnd;
+  }
+
+  if(Runoff >= (StageThreeStormEnd - StageThreeStormStart) && RunoffLead == 0){
+    ToiletPoo[0].Start[3] = StageThreeStormStart;
+    ToiletPoo[0].End[3] = StageThreeStormEnd;
+    ToiletPoo[1].Start[3] = StageThreeStormStart;
+    ToiletPoo[1].End[3] = StageThreeStormEnd;
+
+    WasherPoo[0].Start[3] = StageThreeStormStart;
+    WasherPoo[0].End[3] = StageThreeStormEnd;
+
+    ShowerPoo[0].Start[3] = StageThreeStormStart;
+    ShowerPoo[0].End[3] = StageThreeStormEnd;
+    ShowerPoo[1].Start[3] = StageThreeStormStart;
+    ShowerPoo[1].End[3] = StageThreeStormEnd;
+
+    SinkPoo[0].Start[3] = StageThreeStormStart;
+    SinkPoo[0].End[3] = StageThreeStormEnd;
+  }
+  else{
+    ToiletPoo[0].Start[3] = StageThreeStart;
+    ToiletPoo[0].End[3] = StageThreeEnd;
+    ToiletPoo[1].Start[3] = StageThreeStart;
+    ToiletPoo[1].End[3] = StageThreeEnd;
+
+    WasherPoo[0].Start[3] = StageThreeStart;
+    WasherPoo[0].End[3] = StageThreeEnd;
+
+    ShowerPoo[0].Start[3] = StageThreeStart;
+    ShowerPoo[0].End[3] = StageThreeEnd;
+    ShowerPoo[1].Start[3] = StageThreeStart;
+    ShowerPoo[1].End[3] = StageThreeEnd;
+
+    SinkPoo[0].Start[3] = StageThreeStart;
+    SinkPoo[0].End[3] = StageThreeEnd;
+  }
+}
+
+// void GutterFlowUpdate(int Intensity, int BlueBrightness, int GreenBrightness){
+//   for(int x = 0; x < GutterHueLength; x++){
+//     GutterHue.BlueHue[x]= (BlueBrightness/2)+((BlueBrightness/2)*cos(x*(((3.14 * Intensity))/GutterHueLength)));
+//     GutterHue.GreenHue[x]= (GreenBrightness/2)+((GreenBrightness/2)*cos(x*((3.14 * Intensity)/GutterHueLength)));
+//   }
+// }
+
+// void RainGutters(){
+//   if(StormLevel > 0){
+//     for(int x = 0; x < GutterLength - GutterLead; x++){ // Base Animation
+//       //for(int Gutter = 0; Gutter <= 4; Gutter++){strip.setPixelColor((Num_Pixels - (3*Gutter))+x,0,GutterHue[x], GutterHue[x]+5);}
+//       strip.setPixelColor(WaterTreatmentEnd + 1 + x,0,GutterHue.GreenHue[x], GutterHue.BlueHue[x]+5);
+//       strip.setPixelColor((Num_Pixels - (GutterLength * 2)) + x,0,GutterHue.GreenHue[x], GutterHue.BlueHue[x]+5);
+//     }
+//     if(GutterLead > 0){GutterLead--;}
+//   }
+//   else{
+//     for(int x = GutterLead; x < GutterLength; x++){ // Base Animation
+//       //for(int Gutter = 0; Gutter <= 4; Gutter++){strip.setPixelColor((Num_Pixels - (3*Gutter))+x,0,GutterHue[x], GutterHue[x]+5);}
+//       strip.setPixelColor((Num_Pixels - (GutterLength)) + x,0,GutterHue.GreenHue[x], GutterHue.BlueHue[x]+5);
+//       strip.setPixelColor((Num_Pixels - (GutterLength * 2)) + x,0,GutterHue.GreenHue[x], GutterHue.BlueHue[x]+5);
+//     }
+//     for(int x = 1; x <= 4; x++){strip.setPixelColor((Num_Pixels - (GutterLength*x)) + GutterLead, 0, 0, 0);}
+//     if(GutterLead < GutterLength){GutterLead++;}
+//   }
+// }
+
 void loop() {
   // put your main code here, to run repeatedly:
   CurrentTime = millis();
+  Rain();
+
+  // if(CurrentTime  >= RainFrame.Duration + RainFrame.LastTriggered){
+  //  //Serial.println(StormLevel);
+  //   if(GutterIntensity != StormLevel){
+  //     if(StormLevel == 1){GutterFlowUpdate(StormLevel,100,100);}
+  //     else if (StormLevel == 2){GutterFlowUpdate(StormLevel,150,150);}
+  //     else if (StormLevel == 3){GutterFlowUpdate(StormLevel,200,200);}
+  //     GutterIntensity = StormLevel;
+  //   }
+
+  //   RainGutters();
+    
+  //   if(StormLevel > 0){
+  //     GutterHue.LastBlue = GutterHue.BlueHue[GutterHueLength -1];
+  //     GutterHue.LastGreen = GutterHue.GreenHue[GutterHueLength -1];
+  //     for(int x = GutterHueLength; x >= 0; x--){
+  //       if(x != 0){
+  //         GutterHue.BlueHue[x] = GutterHue.BlueHue[x-1];
+  //         GutterHue.GreenHue[x] = GutterHue.GreenHue[x-1];
+  //       }
+  //       else{
+  //          GutterHue.BlueHue[x] = GutterHue.LastBlue;
+  //         GutterHue.GreenHue[x] = GutterHue.LastGreen;
+  //       }
+  //     }
+  //   }
+  
+  //   RainFrame.LastTriggered = CurrentTime;
+  // }
+
 
   if(CurrentTime  >= SewersFrame.Duration + SewersFrame.LastTriggered){
     Sewers();
+    UpdatePaths();
     SewerWaveHue.LastBlue = SewerWaveHue.BlueHue[Length-1];
     SewerWaveHue.LastGreen = SewerWaveHue.GreenHue[Length-1];
 
@@ -1004,6 +888,8 @@ void loop() {
 
         //FlowOutMultiplier[x] = LastFlowOutMultiplier;
       }
+
+      SewersFrame.LastTriggered = CurrentTime;
     }
   }
 
