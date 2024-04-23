@@ -194,7 +194,12 @@ struct PooControls{
 
   void Run(){
     if(CurrentTime >= SewersFrame.LastTriggered + SewersFrame.Duration){
-      for(int i=0; i < StreakLength; i++){strip.setPixelColor(Poo[i],StreakHue[i],StreakHue[i],0);}
+      for(int i=0; i < StreakLength; i++){
+        if(CurrentPooType == 1){strip.setPixelColor(Poo[i],StreakHue[i],StreakHue[i],0);}
+        else if(CurrentPooType == 2){strip.setPixelColor(Poo[i],0,StreakHue[i],0);}
+        else if(CurrentPooType == 3){strip.setPixelColor(Poo[i],0,0,StreakHue[i]);}
+        else if(CurrentPooType == 4){strip.setPixelColor(Poo[i],StreakHue[i],0,0);}
+      }
 
       for(int i = StreakLength - 1; i > 0; i--){Poo[i] = Poo[i-1];}
       
@@ -369,7 +374,12 @@ struct Pipes{
   void PooFlow(){
     for(int x = 0; x < 3; x++){
       if(PooTriggered[x] == false && PipeLength[x] != 0){
-        for(int i = 0; i < StreakLength; i++){strip.setPixelColor(PipeStart[x]+PooPath[x][i],StreakHue[i],StreakHue[i],0);}
+        for(int i = 0; i < StreakLength; i++){
+          if(CurrentPipe == 1){strip.setPixelColor(PipeStart[x]+PooPath[x][i],StreakHue[i],StreakHue[i],0);}
+          else if(CurrentPipe == 2){strip.setPixelColor(PipeStart[x]+PooPath[x][i],0,StreakHue[i],0);}
+          else if(CurrentPipe == 3){strip.setPixelColor(PipeStart[x]+PooPath[x][i],0,0,StreakHue[i]);}
+          else if(CurrentPipe == 4){strip.setPixelColor(PipeStart[x]+PooPath[x][i],StreakHue[i],0,0);}
+        }
         if(PooPath[x][0] != PipeLength[x]){PooPath[x][0]++;}
         else if(PooPath[x][StreakLength - 1] == PipeLength[x]){
           for(int i = 0; i < NumPoos; i++){
@@ -792,66 +802,66 @@ void UpdatePaths(){
   }
 }
 
-// void GutterFlowUpdate(int Intensity, int BlueBrightness, int GreenBrightness){
-//   for(int x = 0; x < GutterHueLength; x++){
-//     GutterHue.BlueHue[x]= (BlueBrightness/2)+((BlueBrightness/2)*cos(x*(((3.14 * Intensity))/GutterHueLength)));
-//     GutterHue.GreenHue[x]= (GreenBrightness/2)+((GreenBrightness/2)*cos(x*((3.14 * Intensity)/GutterHueLength)));
-//   }
-// }
+void GutterFlowUpdate(int Intensity, int BlueBrightness, int GreenBrightness){
+  for(int x = 0; x < GutterHueLength; x++){
+    GutterHue.BlueHue[x]= (BlueBrightness/2)+((BlueBrightness/2)*cos(x*(((3.14 * Intensity))/GutterHueLength)));
+    GutterHue.GreenHue[x]= (GreenBrightness/2)+((GreenBrightness/2)*cos(x*((3.14 * Intensity)/GutterHueLength)));
+  }
+}
 
-// void RainGutters(){
-//   if(StormLevel > 0){
-//     for(int x = 0; x < GutterLength - GutterLead; x++){ // Base Animation
-//       //for(int Gutter = 0; Gutter <= 4; Gutter++){strip.setPixelColor((Num_Pixels - (3*Gutter))+x,0,GutterHue[x], GutterHue[x]+5);}
-//       strip.setPixelColor(WaterTreatmentEnd + 1 + x,0,GutterHue.GreenHue[x], GutterHue.BlueHue[x]+5);
-//       strip.setPixelColor((Num_Pixels - (GutterLength * 2)) + x,0,GutterHue.GreenHue[x], GutterHue.BlueHue[x]+5);
-//     }
-//     if(GutterLead > 0){GutterLead--;}
-//   }
-//   else{
-//     for(int x = GutterLead; x < GutterLength; x++){ // Base Animation
-//       //for(int Gutter = 0; Gutter <= 4; Gutter++){strip.setPixelColor((Num_Pixels - (3*Gutter))+x,0,GutterHue[x], GutterHue[x]+5);}
-//       strip.setPixelColor((Num_Pixels - (GutterLength)) + x,0,GutterHue.GreenHue[x], GutterHue.BlueHue[x]+5);
-//       strip.setPixelColor((Num_Pixels - (GutterLength * 2)) + x,0,GutterHue.GreenHue[x], GutterHue.BlueHue[x]+5);
-//     }
-//     for(int x = 1; x <= 4; x++){strip.setPixelColor((Num_Pixels - (GutterLength*x)) + GutterLead, 0, 0, 0);}
-//     if(GutterLead < GutterLength){GutterLead++;}
-//   }
-// }
+void RainGutters(){
+  if(StormLevel > 0){
+    for(int x = 0; x < GutterLength - GutterLead; x++){ // Base Animation
+      //for(int Gutter = 0; Gutter <= 4; Gutter++){strip.setPixelColor((Num_Pixels - (3*Gutter))+x,0,GutterHue[x], GutterHue[x]+5);}
+      strip.setPixelColor(WaterTreatmentEnd + 1 + x,0,GutterHue.GreenHue[x], GutterHue.BlueHue[x]+5);
+      strip.setPixelColor(WaterTreatmentEnd + 4 + x,0,GutterHue.GreenHue[x], GutterHue.BlueHue[x]+5);
+    }
+    if(GutterLead > 0){GutterLead--;}
+  }
+  else{
+    for(int x = GutterLead; x < GutterLength; x++){ // Base Animation
+      //for(int Gutter = 0; Gutter <= 4; Gutter++){strip.setPixelColor((Num_Pixels - (3*Gutter))+x,0,GutterHue[x], GutterHue[x]+5);}
+      strip.setPixelColor((Num_Pixels - (GutterLength)) + x,0,GutterHue.GreenHue[x], GutterHue.BlueHue[x]+5);
+      strip.setPixelColor((Num_Pixels - (GutterLength * 2)) + x,0,GutterHue.GreenHue[x], GutterHue.BlueHue[x]+5);
+    }
+    for(int x = 1; x <= 4; x++){strip.setPixelColor((Num_Pixels - (GutterLength*x)) + GutterLead, 0, 0, 0);}
+    if(GutterLead < GutterLength){GutterLead++;}
+  }
+}
 
 void loop() {
   // put your main code here, to run repeatedly:
   CurrentTime = millis();
   Rain();
 
-  // if(CurrentTime  >= RainFrame.Duration + RainFrame.LastTriggered){
-  //  //Serial.println(StormLevel);
-  //   if(GutterIntensity != StormLevel){
-  //     if(StormLevel == 1){GutterFlowUpdate(StormLevel,100,100);}
-  //     else if (StormLevel == 2){GutterFlowUpdate(StormLevel,150,150);}
-  //     else if (StormLevel == 3){GutterFlowUpdate(StormLevel,200,200);}
-  //     GutterIntensity = StormLevel;
-  //   }
+  if(CurrentTime  >= RainFrame.Duration + RainFrame.LastTriggered){
+   //Serial.println(StormLevel);
+    if(GutterIntensity != StormLevel){
+      if(StormLevel == 1){GutterFlowUpdate(StormLevel,100,100);}
+      else if (StormLevel == 2){GutterFlowUpdate(StormLevel,150,150);}
+      else if (StormLevel == 3){GutterFlowUpdate(StormLevel,200,200);}
+      GutterIntensity = StormLevel;
+    }
 
-  //   RainGutters();
+    RainGutters();
     
-  //   if(StormLevel > 0){
-  //     GutterHue.LastBlue = GutterHue.BlueHue[GutterHueLength -1];
-  //     GutterHue.LastGreen = GutterHue.GreenHue[GutterHueLength -1];
-  //     for(int x = GutterHueLength; x >= 0; x--){
-  //       if(x != 0){
-  //         GutterHue.BlueHue[x] = GutterHue.BlueHue[x-1];
-  //         GutterHue.GreenHue[x] = GutterHue.GreenHue[x-1];
-  //       }
-  //       else{
-  //          GutterHue.BlueHue[x] = GutterHue.LastBlue;
-  //         GutterHue.GreenHue[x] = GutterHue.LastGreen;
-  //       }
-  //     }
-  //   }
+    if(StormLevel > 0){
+      GutterHue.LastBlue = GutterHue.BlueHue[GutterHueLength -1];
+      GutterHue.LastGreen = GutterHue.GreenHue[GutterHueLength -1];
+      for(int x = GutterHueLength; x >= 0; x--){
+        if(x != 0){
+          GutterHue.BlueHue[x] = GutterHue.BlueHue[x-1];
+          GutterHue.GreenHue[x] = GutterHue.GreenHue[x-1];
+        }
+        else{
+           GutterHue.BlueHue[x] = GutterHue.LastBlue;
+          GutterHue.GreenHue[x] = GutterHue.LastGreen;
+        }
+      }
+    }
   
-  //   RainFrame.LastTriggered = CurrentTime;
-  // }
+    RainFrame.LastTriggered = CurrentTime;
+  }
 
 
   if(CurrentTime  >= SewersFrame.Duration + SewersFrame.LastTriggered){
