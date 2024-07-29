@@ -42,14 +42,14 @@ struct Time {
 Time PipesFrame = {0,5};
 //RainTiming
 Time RainFrame = {0,10};
-Time RainWait = {0,500};
+Time RainWait = {0,250};
 Time ProjectedSpeed = {0,10};
-Time RainHold = {0,1000};
+Time RainHold = {0,750};
 //SewersTiming
 Time SewersFrame = {0,10};
-Time StageOneStorm = {0,2000};
-Time StageTwoStorm = {0,2000 + StageOneStorm.Duration};
-Time StageThreeStorm = {0,4000 + StageTwoStorm.Duration};
+Time StageOneStorm = {0,500};
+Time StageTwoStorm = {0,500 + StageOneStorm.Duration};
+Time StageThreeStorm = {0,1000 + StageTwoStorm.Duration};
 
 //Gutter Sizes and Variables
 const int GutterLength = 3;
@@ -651,14 +651,14 @@ void Sewers(){
     }
 
     for(int x = WaterTreatmentStart; x < WaterTreatmentEnd; x++){strip.setPixelColor(x,0,SewerWaveHue.GreenHue[x-(Length*(x/Length))]+10,10+SewerWaveHue.BlueHue[x-(Length*(x/Length))]);}
-
+    //Serial.println(StormStart);
 
     if(StormLevel < 3){
       for(int x = OceanDrainStart; x < OceanDrainEnd; x++){
         if(x < StageTwoStormStart){strip.setPixelColor(x,0,SewerWaveHue.GreenHue[x-(Length*(x/Length))]+10,10+SewerWaveHue.BlueHue[x-(Length*(x/Length))]);}
         else if(x > StageTwoStormStart && x <= StageTwoStormEnd && StormStart == true){
-          if(FlowOutIntensity > 0 && Runoff == RunoffLead){FlowOutIntensity = FlowOutIntensity - .005;}
-          else if (FlowOutIntensity == 0){StormStart = false;}
+          if(FlowOutIntensity > 0.005 && Runoff == RunoffLead){FlowOutIntensity = FlowOutIntensity - .005;}
+          else if (FlowOutIntensity < 0.005){StormStart = false;}
           strip.setPixelColor(x,0,(FlowOutHue.GreenHue[x-(Length*(x/Length))]+10) * FlowOutIntensity, (10+FlowOutHue.BlueHue[x-(Length*(x/Length))])*FlowOutIntensity);
         }
         else if(x >= StageThreeStormStart + RunoffLead && Runoff > 0){strip.setPixelColor(x,0,FlowOutHue.GreenHue[x-(Length*(x/Length))]+10,10+FlowOutHue.BlueHue[x-(Length*(x/Length))]);}
