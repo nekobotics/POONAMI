@@ -1,9 +1,9 @@
 #include <OctoWS2811.h>
 
-const int numPins = 6;
-byte pinList[numPins] = {2,3,23,22,14,8};
+const int numPins = 4;
+byte pinList[numPins] = {23,22,14,16};
 
-const int ledsPerStrip = 60;
+const int ledsPerStrip = 132;
 
 DMAMEM int displayMemory[ledsPerStrip*6];
 int drawingMemory[ledsPerStrip*6];
@@ -17,14 +17,14 @@ unsigned long CurrentTime;
 
 struct Time{
   unsigned long LastTriggered;
-  int Delay;
+  double Delay;
 };
 
-Time raintime = {0,8};
+Time raintime = {0,3.5};
 Time rainselecttime[numPins]; 
 
 const int NumRaindrops = 3;
-const int rainSize = 5;
+const int rainSize = 8;
 int Color[rainSize];
 
 struct rain{
@@ -33,12 +33,12 @@ struct rain{
   bool active;
 
   void run(){
-    if(position == 64){
+    if(position == ledsPerStrip+rainSize){
       position = 0;
       active = false;
     }
     else{
-      for(int x=0; x < rainSize;x++){if(position - x >=0 && position - x <= 59){leds.setPixel(position - x + start,Color[x]/10,Color[x]/10,Color[x]);}}
+      for(int x=0; x < rainSize;x++){if(position - x >=0 && position - x < ledsPerStrip){leds.setPixel(position - x + start,Color[x]/10,Color[x]/10,Color[x]);}}
       position++;
     }
   }
@@ -54,7 +54,7 @@ void setup() {
 
   for(int x=0; x < numPins; x++){
     for(int y = 0; y< NumRaindrops; y++){
-      rainDrops[x][y].start = 60 * x;
+      rainDrops[x][y].start = ledsPerStrip * x;
     }
   }
 
