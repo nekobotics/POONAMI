@@ -5,8 +5,8 @@
 #define Input_3 11 //
 #define Input_4 10 //
 
-#define RainLvl1 14 //
-#define RainLvl2 15 //
+#define Ral2 15 //
+#define RainLvinLvl1 14 //
 #define RainLvl3 16 //
 
 #define Rain_Input 9 //

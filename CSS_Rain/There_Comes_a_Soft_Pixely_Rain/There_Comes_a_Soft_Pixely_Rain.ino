@@ -1,7 +1,19 @@
 #include <OctoWS2811.h>
+#include "messages.h"
+
+// globals for storing incoming CAN data
+InputLevels levels, nextLevels;
+bool updatedLevels = false;
+
+// process an incoming InputLevels CAN msg
+void processInputLevels(uint8_t src, InputLevels newLevels) {
+  Serial.println("new levels!");
+  memcpy(&nextLevels, &newLevels, sizeof(InputLevels));
+  updatedLevels = true;
+}
 
 const int numPins = 4;
-byte pinList[numPins] = {23,22,14,16};
+byte pinList[numPins] = {2,3,4,5};
 
 const int ledsPerStrip = 132;
 
@@ -21,11 +33,17 @@ struct Time{
 };
 
 Time raintime = {0,3.5};
+Time rainIncrementTime = {0,1000};
+Time rainHold = {0, 3000};
 Time rainselecttime[numPins]; 
 
-const int NumRaindrops = 3;
+const int NumRaindrops = 4;
 const int rainSize = 8;
 int Color[rainSize];
+
+int rainState = 0;
+int ProjectedrainState = NumRaindrops;
+bool rainRise = true;
 
 struct rain{
   int position;
@@ -52,6 +70,8 @@ void setup() {
   leds.begin();
   leds.show();
 
+  setupCan();
+
   for(int x=0; x < numPins; x++){
     for(int y = 0; y< NumRaindrops; y++){
       rainDrops[x][y].start = ledsPerStrip * x;
@@ -68,10 +88,32 @@ void loop() {
   // put your main code here, to run repeatedly:
   CurrentTime = millis();
 
+  // if(updatedLevels && levels.rainFlow > 0 && ProjectedrainState != 0){
+  //   rainRise = true;
+  //   updatedLevels = false;
+  // }
+
+  if(CurrentTime >= rainIncrementTime.LastTriggered + rainIncrementTime.Delay){
+    if(rainState < ProjectedrainState){rainState++;}
+    else if(rainState > ProjectedrainState){rainState--;}
+    else if (rainState == ProjectedrainState){rainHold.LastTriggered = CurrentTime;}
+    rainIncrementTime.LastTriggered = CurrentTime;
+  }
+  if(rainState == ProjectedrainState && CurrentTime >= rainHold.LastTriggered + rainHold.Delay){
+    if(rainRise == true){
+      ProjectedrainState = NumRaindrops;
+      rainRise = false;
+    }
+    else{
+      ProjectedrainState = NumRaindrops;
+      rainRise = true;
+    }
+  }
+
   for(int x= 0; x < numPins; x++){
     if(CurrentTime >= rainselecttime[x].LastTriggered + rainselecttime[x].Delay){
       rainselecttime[x].Delay = (random(5 ,50) * 10);
-      for(int y=0; y < NumRaindrops; y++){
+      for(int y=0; y < rainState; y++){
         if(rainDrops[x][y].active == false){
           rainDrops[x][y].active = true;
           break;
